@@ -3,7 +3,7 @@ cwlVersion: v1.1
 class: CommandLineTool
 requirements:
   DockerRequirement:
-    dockerPull: hubmap/stellar-prep-convert
+    dockerPull: hubmap/stellar-prep-convert:0.2.2
   InlineJavascriptRequirement: { }
 baseCommand: "/opt/convert_input_ometiffs.py"
 
