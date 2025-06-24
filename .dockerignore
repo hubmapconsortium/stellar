@@ -1,0 +1,7 @@
+.git
+.idea
+*.csv
+*.h5ad
+*.tfrecord
+*.npy
+*.npz
