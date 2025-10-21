@@ -10,7 +10,7 @@ from utils import prepare_save_dir
 
 # TODO: generalize as appropriate with new or multiple references
 #   and move the functionality to find this
-data_filename = "20241108_HuBMAP_intestine_annotated.h5ad"
+data_filename = "20251007_cleaned_trainingdata_yang.h5ad"
 
 data_dir_possibilities = [
     Path("/data"),
