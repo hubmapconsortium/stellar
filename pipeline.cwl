@@ -14,10 +14,18 @@ outputs:
     outputSource: stellar/stellar_results_for_sprm
 
 steps:
+  ome_tiff_normalize:
+    in:
+      data_dir:
+        source: data_dir
+    out:
+      - output_dir
+    run: ome-tiff-normalize/ome_tiff_normalize.cwl
+
   pre-convert:
     run: steps/pre-convert.cwl
     in:
-      directory: data_dir
+      directory: ome_tiff_normalize/output_dir
     out:
       - h5ad_file
 

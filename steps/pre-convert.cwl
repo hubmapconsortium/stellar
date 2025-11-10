@@ -9,7 +9,7 @@ baseCommand: "/opt/convert_input_ometiffs.py"
 
 inputs:
   directory:
-    type: Directory
+    type: Directory[]
     inputBinding:
       position: 0
 

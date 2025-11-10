@@ -31,7 +31,7 @@ RUN pip3 install -r /opt/requirements.txt \
 
 RUN mkdir /data \
  && cd /data \
- && wget https://hubmap-pipeline-assets.s3.us-east-1.amazonaws.com/stellar/20241108_HuBMAP_intestine_annotated.h5ad
+ && wget https://hubmap-pipeline-assets.s3.us-east-1.amazonaws.com/stellar/20251007_cleaned_trainingdata_yang.h5ad
 
 COPY stellar-main /stellar-main
 
