@@ -4,7 +4,6 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import anndata
-import numpy as np
 import pandas as pd
 from ome_utils import find_ome_tiffs
 from sklearn.preprocessing import StandardScaler
@@ -36,7 +35,7 @@ def convert(expr: Path, mask: Path):
     features = modules.cell_features.run(
         core_data=core,
         output_dir=output_dir,
-        compute_texture=False,  # Set to True if you want texture features too
+        compute_texture=False,
     )
 
     mean_expr = DataArray(
@@ -48,7 +47,6 @@ def convert(expr: Path, mask: Path):
         ],
         dims=["mask_channel", "cell_index", "expr_channel"],
     )
-    spatial_coords = np.zeros((len(core.mask.cell_index), 2))
 
     expr_array = mean_expr.loc["cell", :, :].to_numpy()
     scaled_expr_array = StandardScaler().fit_transform(expr_array)
@@ -56,8 +54,16 @@ def convert(expr: Path, mask: Path):
         X=scaled_expr_array,
         obs=pd.DataFrame(index=mean_expr.coords["cell_index"]),
         var=pd.DataFrame(index=mean_expr.coords["expr_channel"]),
-        obsm={"X_spatial": spatial_coords},
+        # obsm={"X_spatial": core.cell_centers},
     )
+    # TODO: clean up indexing/slicing
+    # Not a big deal to be a little clumsy here; it's just for conversion
+    cell_centers_df = pd.DataFrame(
+        core.cell_centers[core.mask.interior_cells],
+        index=image_adata.obs_names,
+        columns=["X", "Y", "Z"],
+    ).loc[:, ["Y", "X"]]
+    image_adata.obsm["X_spatial"] = cell_centers_df
     image_adata.obs["unique_region"] = expr.stem
     return image_adata
 

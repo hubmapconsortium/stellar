@@ -9,7 +9,7 @@ RUN apt-get update \
  && rm -rf /var/cache/apt/*
 
 RUN python3 -m pip install \
-    git+https://github.com/hubmapconsortium/sprm@d4232c39d6b78196a1ac245cc4fb2c894693aa32 \
+    git+https://github.com/hubmapconsortium/sprm@ca3d3f91eb50522a889cf5c9b3e37b8cce4a7dd7 \
     git+https://github.com/hubmapconsortium/ome-utils@v0.3.5 \
     anndata \
     pandas
