@@ -50,14 +50,17 @@ def convert(expr: Path, mask: Path):
 
     expr_array = mean_expr.loc["cell", :, :].to_numpy()
     scaled_expr_array = StandardScaler().fit_transform(expr_array)
+    # Don't assign obsm={"X_spatial": ...} here, since we want this stored
+    # as a DataFrame with Y, X columns, but the index of such a DataFrame
+    # and the index of the overall AnnData must match when instantiating
+    # in that way.
     image_adata = anndata.AnnData(
         X=scaled_expr_array,
         obs=pd.DataFrame(index=mean_expr.coords["cell_index"]),
         var=pd.DataFrame(index=mean_expr.coords["expr_channel"]),
-        # obsm={"X_spatial": core.cell_centers},
     )
-    # TODO: clean up indexing/slicing
-    # Not a big deal to be a little clumsy here; it's just for conversion
+    # So, create the DataFrame after the AnnData, using .obs_names as the
+    # index, to make sure everything matches with minimal effort.
     cell_centers_df = pd.DataFrame(
         core.cell_centers[core.mask.interior_cells],
         index=image_adata.obs_names,
