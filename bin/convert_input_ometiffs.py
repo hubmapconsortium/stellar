@@ -1,63 +1,14 @@
 #!/usr/bin/env python3
+import importlib.resources
 from argparse import ArgumentParser
 from pathlib import Path
-from typing import Iterable
 
 import anndata
 import pandas as pd
-from aicsimageio import AICSImage
 from ome_utils import find_ome_tiffs
-from skimage.measure import regionprops
 from sklearn.preprocessing import StandardScaler
-
-
-def get_ome_tiff_paths(input_dir: Path) -> Iterable[tuple[Path, Path]]:
-    """
-    Yields 2-tuples:
-     [0] full Path to source file
-     [1] output file Path (source file relative to input_dir)
-    """
-    for ome_tiff in find_ome_tiffs(input_dir):
-        yield ome_tiff, ome_tiff.relative_to(input_dir)
-
-
-def convert_image_data(expr_image_file: Path, mask_image_file: Path) -> anndata.AnnData:
-    print("Loading image data")
-    image = AICSImage(expr_image_file)
-    image_data_squeezed = image.data.squeeze()
-    print("... done. Original shape:", image.data.shape)
-
-    print("Loading mask data")
-    mask = AICSImage(mask_image_file)
-    mask_data = {
-        ch: mask.data[0, i, 0, :, :] for i, ch in enumerate(mask.channel_names)
-    }
-    cell_indexes = sorted(set(mask_data["cells"].flat) - {0})
-    print("... done.", len(cell_indexes), "cells")
-
-    total_expr = pd.DataFrame(0.0, index=cell_indexes, columns=image.channel_names)
-    mean_expr = pd.DataFrame(0.0, index=cell_indexes, columns=image.channel_names)
-    centers = pd.DataFrame(0.0, index=cell_indexes, columns=["y", "x"])
-
-    for rp in regionprops(mask_data["cells"]):
-        centers.loc[rp.label, :] = rp.centroid
-        pixel_data = image_data_squeezed[:, *(rp.coords.T)]
-        total_vec = pixel_data.sum(axis=1)
-        total_expr.loc[rp.label, :] = total_vec
-        mean_expr.loc[rp.label, :] = total_vec / rp.area
-
-    scaled_expr_array = StandardScaler().fit_transform(mean_expr)
-    image_adata = anndata.AnnData(
-        X=scaled_expr_array,
-        obs=pd.DataFrame(index=mean_expr.index),
-        var=pd.DataFrame(index=mean_expr.columns),
-        obsm={"X_spatial": centers.values},
-    )
-
-    image_adata.obs["unique_region"] = expr_image_file.stem
-    print(image_adata)
-
-    return image_adata
+from sprm import modules
+from xarray import DataArray
 
 
 def find_expr_mask_dir(base_dir: Path) -> tuple[Path, Path]:
@@ -68,6 +19,58 @@ def find_expr_mask_dir(base_dir: Path) -> tuple[Path, Path]:
     raise ValueError("Couldn't find image and mask directories")
 
 
+options_file = importlib.resources.files("sprm") / "options.txt"
+output_dir_base = Path("sprm_features_outputs")
+
+
+def convert(expr: Path, mask: Path):
+    output_dir = output_dir_base / expr.stem
+    output_dir.mkdir(exist_ok=True, parents=True)
+    core = modules.preprocessing.run(
+        img_file=expr,
+        mask_file=mask,
+        output_dir=output_dir,
+        options=options_file,
+    )
+    features = modules.cell_features.run(
+        core_data=core,
+        output_dir=output_dir,
+        compute_texture=False,
+    )
+
+    mean_expr = DataArray(
+        features.mean_vector.squeeze(),
+        coords=[
+            core.mask.channel_labels,
+            core.mask.cell_index,
+            core.im.channel_labels,
+        ],
+        dims=["mask_channel", "cell_index", "expr_channel"],
+    )
+
+    expr_array = mean_expr.loc["cell", :, :].to_numpy()
+    scaled_expr_array = StandardScaler().fit_transform(expr_array)
+    # Don't assign obsm={"X_spatial": ...} here, since we want this stored
+    # as a DataFrame with Y, X columns, but the index of such a DataFrame
+    # and the index of the overall AnnData must match when instantiating
+    # in that way.
+    image_adata = anndata.AnnData(
+        X=scaled_expr_array,
+        obs=pd.DataFrame(index=mean_expr.coords["cell_index"]),
+        var=pd.DataFrame(index=mean_expr.coords["expr_channel"]),
+    )
+    # So, create the DataFrame after the AnnData, using .obs_names as the
+    # index, to make sure everything matches with minimal effort.
+    cell_centers_df = pd.DataFrame(
+        core.cell_centers[core.mask.interior_cells],
+        index=image_adata.obs_names,
+        columns=["X", "Y", "Z"],
+    ).loc[:, ["Y", "X"]]
+    image_adata.obsm["X_spatial"] = cell_centers_df
+    image_adata.obs["unique_region"] = expr.stem
+    return image_adata
+
+
 def main(directory: Path):
     expr_dir, mask_dir = find_expr_mask_dir(directory)
     exprs = sorted(find_ome_tiffs(expr_dir))
@@ -75,7 +78,7 @@ def main(directory: Path):
 
     adatas = []
     for expr, mask in zip(exprs, masks):
-        adatas.append(convert_image_data(expr, mask))
+        adatas.append(convert(expr, mask))
 
     adata = anndata.concat(adatas)
     adata.write_h5ad("cell_data.h5ad")
