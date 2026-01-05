@@ -15,11 +15,12 @@ outputs:
 
 steps:
   pre-convert:
-    run: steps/pre-convert.cwl
+    run: expr-mask-convert/pipeline.cwl
     in:
       directory: data_dir
     out:
       - h5ad_file
+      - spatialdata_zarr
 
   stellar:
     run: steps/stellar.cwl
