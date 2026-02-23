@@ -4,7 +4,7 @@ baseCommand: ["python", "/stellar-main/STELLAR_run.py"]
 
 requirements:
   DockerRequirement:
-    dockerPull: hubmap/stellar:0.2.outofband.sprm-convert
+    dockerPull: hubmap/stellar:0.outofband.sprm-convert
   DockerGpuRequirement: {}
   EnvVarRequirement:
     envDef:
