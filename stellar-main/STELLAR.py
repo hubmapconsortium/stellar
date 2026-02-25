@@ -15,15 +15,16 @@ from utils import MarginLoss, entropy
 
 class STELLAR:
 
-    def __init__(self, args, dataset):
+    def __init__(self, args, dataset, pretrained_model):
         self.args = args
         self.dataset = dataset
+        self.pretrained_model = pretrained_model
         args.input_dim = dataset.unlabeled_data.x.shape[-1]
         self.model = models.Encoder(args.input_dim, args.num_heads)
         self.model = self.model.to(args.device)
 
     def train_supervised(self, args, model, device, dataset, optimizer, epoch):
-        model.train()
+        model.train() # Seems like I am putting myself in a bit of a loop here ... Should I just use train_supervised() in STELLAR_run.py instead of train()?
         ce = nn.CrossEntropyLoss()
         sum_loss = 0
 
@@ -180,6 +181,8 @@ class STELLAR:
         clusters = adata.obs["louvain"].values
         clusters = clusters.astype(int)
 
+        # Should I remove seed_model and replace it with the pretrained model?
+        # pretrained_model = self.pretrained_model # and also put that everywhere else
         seed_model = models.FCNet(
             x_dim=self.args.input_dim,
             num_cls=torch.max(self.dataset.labeled_data.y) + 1,
