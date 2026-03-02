@@ -17,12 +17,6 @@ inputs:
     inputBinding:
       position: 0
 
-  tissue:
-    label: tissue to be annotated
-    type: string
-    inputBinding:
-      position: 1
-
 outputs:
   stellar_results_for_sprm:
     label: Directory containing outputs from STELLAR for SPRM
