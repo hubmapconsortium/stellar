@@ -15,46 +15,65 @@ from utils import MarginLoss, entropy
 
 class STELLAR:
 
-    def __init__(self, args, dataset, pretrained_model):
+    def __init__(self, args, dataset):
         self.args = args
         self.dataset = dataset
-        self.pretrained_model = pretrained_model
         args.input_dim = dataset.unlabeled_data.x.shape[-1]
-        self.model = models.Encoder(args.input_dim, args.num_heads)
+        self.model = Encoder(args.input_dim, args.num_heads)
         self.model = self.model.to(args.device)
 
     def train_supervised(self, args, model, device, dataset, optimizer, epoch):
-        model.train() # Seems like I am putting myself in a bit of a loop here ... Should I just use train_supervised() in STELLAR_run.py instead of train()?
+        model.train()
         ce = nn.CrossEntropyLoss()
-        sum_loss = 0
+        sum_loss = 0.0
+
+        correct = 0
+        total = 0
 
         labeled_graph = dataset.labeled_data
-        labeled_data = ClusterData(labeled_graph, num_parts=100, recursive=False)
+        labeled_data = ClusterData(
+            labeled_graph,
+            num_parts=100,
+            recursive=False
+        )
         labeled_loader = ClusterLoader(
-            labeled_data, batch_size=1, shuffle=True, num_workers=1
+            labeled_data,
+            batch_size=64,
+            shuffle=True,
+            num_workers=1
         )
 
         for batch_idx, labeled_x in enumerate(labeled_loader):
             labeled_x = labeled_x.to(device)
             optimizer.zero_grad()
+
             output, _, _ = model(labeled_x)
 
+            # -------- loss --------
             loss = ce(output, labeled_x.y)
-
-            optimizer.zero_grad()
             sum_loss += loss.item()
+
+            # -------- accuracy --------
+            prob = F.softmax(output, dim=1)
+            pred = prob.argmax(dim=1)      # take argmax as type
+            correct += (pred == labeled_x.y).sum().item()
+            total += labeled_x.y.size(0)
+
             loss.backward()
             optimizer.step()
-        print("Loss: {:.6f}".format(sum_loss / (batch_idx + 1)))
+
+        acc = correct / total if total > 0 else 0.0
+        print(
+            f"Epoch {epoch:03d} | "
+            f"Loss: {sum_loss / (batch_idx + 1):.6f} | "
+            f"Acc: {acc:.4f}"
+        )
 
     def est_seeds(self, args, model, device, dataset, clusters, num_seed_class):
         model.eval()
         entrs = np.array([])
         with torch.no_grad():
-            labeled_graph, unlabeled_graph = (
-                dataset.labeled_data,
-                dataset.unlabeled_data,
-            )
+            labeled_graph, unlabeled_graph = dataset.labeled_data, dataset.unlabeled_data
             unlabeled_graph_cp = copy.deepcopy(unlabeled_graph)
             unlabeled_graph_cp = unlabeled_graph_cp.to(device)
             output, _, _ = model(unlabeled_graph_cp)
@@ -63,7 +82,7 @@ class STELLAR:
             entrs = np.append(entrs, entr.cpu().numpy())
 
         entrs_per_cluster = []
-        for i in range(np.max(clusters) + 1):
+        for i in range(np.max(clusters)+1):
             locs = np.where(clusters == i)[0]
             entrs_per_cluster.append(np.mean(entrs[locs]))
         entrs_per_cluster = np.array(entrs_per_cluster)
@@ -79,26 +98,24 @@ class STELLAR:
         return novel_label_seeds
 
     def train_epoch(self, args, model, device, dataset, optimizer, m, epoch):
-        """Train for 1 epoch."""
+        """ Train for 1 epoch."""
         model.train()
         bce = nn.BCELoss()
         ce = MarginLoss(m=-m)
         sum_loss = 0
 
         labeled_graph, unlabeled_graph = dataset.labeled_data, dataset.unlabeled_data
-        labeled_data = ClusterData(labeled_graph, num_parts=100, recursive=False)
-        labeled_loader = ClusterLoader(
-            labeled_data, batch_size=1, shuffle=True, num_workers=1
-        )
-        unlabeled_data = ClusterData(unlabeled_graph, num_parts=100, recursive=False)
-        unlabeled_loader = ClusterLoader(
-            unlabeled_data, batch_size=1, shuffle=True, num_workers=1
-        )
+        labeled_data = ClusterData(labeled_graph, num_parts=100, recursive=False) #-------------> change from 100 to 1000
+        labeled_loader = ClusterLoader(labeled_data, batch_size=1, shuffle=True,
+                                    num_workers=1)
+        unlabeled_data = ClusterData(unlabeled_graph, num_parts=100, recursive=False) #-----------> change from 100 to 1000
+        unlabeled_loader = ClusterLoader(unlabeled_data, batch_size=1, shuffle=True,
+                                    num_workers=1)
         unlabel_loader_iter = cycle(unlabeled_loader)
 
         for batch_idx, labeled_x in enumerate(labeled_loader):
             unlabeled_x = next(unlabel_loader_iter)
-            unlabeled_ce_idx = torch.where(unlabeled_x.novel_label_seeds > 0)[0]
+            unlabeled_ce_idx = torch.where(unlabeled_x.novel_label_seeds>0)[0]
             labeled_x, unlabeled_x = labeled_x.to(device), unlabeled_x.to(device)
             optimizer.zero_grad()
             labeled_output, labeled_feat, _ = model(labeled_x)
@@ -135,14 +152,10 @@ class STELLAR:
             pos_pairs.extend(pos_idx)
 
             pos_prob = prob[pos_pairs, :]
-            pos_sim = torch.bmm(
-                prob.view(batch_size, 1, -1), pos_prob.view(batch_size, -1, 1)
-            ).squeeze()
+            pos_sim = torch.bmm(prob.view(batch_size, 1, -1), pos_prob.view(batch_size, -1, 1)).squeeze()
             ones = torch.ones_like(pos_sim)
             bce_loss = bce(pos_sim, ones)
-            ce_idx = torch.cat(
-                (torch.arange(labeled_len), labeled_len + unlabeled_ce_idx)
-            )
+            ce_idx = torch.cat((torch.arange(labeled_len), labeled_len+unlabeled_ce_idx))
             target = torch.cat((target, unlabeled_x.novel_label_seeds))
             ce_loss = ce(output[ce_idx], target[ce_idx])
             entropy_loss = entropy(torch.mean(prob, 0))
@@ -154,7 +167,7 @@ class STELLAR:
             loss.backward()
             optimizer.step()
 
-        print("Loss: {:.6f}".format(sum_loss / (batch_idx + 1)))
+        print('Loss: {:.6f}'.format(sum_loss / (batch_idx + 1)))
 
     def pred(self):
         self.model.eval()
@@ -178,48 +191,19 @@ class STELLAR:
         adata = AnnData(unlabel_x.numpy())
         sc.pp.neighbors(adata)
         sc.tl.louvain(adata, 1)
-        clusters = adata.obs["louvain"].values
+        clusters = adata.obs['louvain'].values
         clusters = clusters.astype(int)
 
-        # Should I remove seed_model and replace it with the pretrained model?
-        # pretrained_model = self.pretrained_model # and also put that everywhere else
-        seed_model = models.FCNet(
-            x_dim=self.args.input_dim,
-            num_cls=torch.max(self.dataset.labeled_data.y) + 1,
-        )
+        seed_model = FCNet(x_dim = self.args.input_dim, num_cls=torch.max(self.dataset.labeled_data.y)+1)
         seed_model = seed_model.to(self.args.device)
-        seed_optimizer = optim.Adam(seed_model.parameters(), lr=1e-3, weight_decay=5e-2)
-        for epoch in range(20):
-            self.train_supervised(
-                self.args,
-                seed_model,
-                self.args.device,
-                self.dataset,
-                seed_optimizer,
-                epoch,
-            )
-        novel_label_seeds = self.est_seeds(
-            self.args,
-            seed_model,
-            self.args.device,
-            self.dataset,
-            clusters,
-            self.args.num_seed_class,
-        )
+        seed_optimizer = optim.Adam(seed_model.parameters(), lr=1e-3, weight_decay=1e-5)
+        for epoch in range(50):
+            self.train_supervised(self.args, seed_model, self.args.device, self.dataset, seed_optimizer, epoch)
+        novel_label_seeds = self.est_seeds(self.args, seed_model, self.args.device, self.dataset, clusters, self.args.num_seed_class)
         self.dataset.unlabeled_data.novel_label_seeds = torch.tensor(novel_label_seeds)
         # Set the optimizer
-        optimizer = optim.Adam(
-            self.model.parameters(), lr=self.args.lr, weight_decay=self.args.wd
-        )
+        optimizer = optim.Adam(self.model.parameters(), lr=self.args.lr, weight_decay=self.args.wd)
 
         for epoch in range(self.args.epochs):
             mean_uncert, _ = self.pred()
-            self.train_epoch(
-                self.args,
-                self.model,
-                self.args.device,
-                self.dataset,
-                optimizer,
-                mean_uncert,
-                epoch,
-            )
+            self.train_epoch(self.args, self.model, self.args.device, self.dataset, optimizer, mean_uncert, epoch)

@@ -8,20 +8,50 @@ from sklearn.metrics import pairwise_distances
 from torch_geometric.data import Data, InMemoryDataset
 
 
-def get_hubmap_edge_index(pos, regions, distance_thres):
-    # construct edge indexes when there is region information
-    pos = np.asarray(pos)
+def get_hubmap_edge_index(pos, regions, distance_thres, *, max_neighbors_per_node=None):
+    """
+    Build edges within each region using a cKDTree radius query (no dense NxN matrix).
+    Optional: cap neighbors per node to further limit edges.
+    """
     edge_list = []
     regions_unique = np.unique(regions)
+
     for reg in regions_unique:
         locs = np.where(regions == reg)[0]
-        pos_region = pos[locs, :]
-        dists = pairwise_distances(pos_region)
-        dists_mask = dists < distance_thres
-        np.fill_diagonal(dists_mask, 0)
-        region_edge_list = np.transpose(np.nonzero(dists_mask)).tolist()
-        for i, j in region_edge_list:
-            edge_list.append([locs[i], locs[j]])
+        if len(locs) < 2:
+            continue
+
+        P = pos[locs, :]                 # (n_r, 2)
+        tree = cKDTree(P)
+
+        # vectorized: list of arrays of neighbor indices (including self)
+        neigh = tree.query_ball_point(P, r=float(distance_thres))
+
+        if max_neighbors_per_node is not None:
+            # cap neighbors per node within radius using nearest queries
+            for i, js in enumerate(neigh):
+                # remove self if present
+                js = [j for j in js if j != i]
+                if max_neighbors_per_node and len(js) > max_neighbors_per_node:
+                    # get k nearest within radius using a second query
+                    # query returns fixed k; filter by radius + drop self
+                    k = max_neighbors_per_node + 1
+                    d, idx = tree.query(P[i], k=k, distance_upper_bound=float(distance_thres))
+                    # idx/d may include invalid entries when fewer than k neighbors exist
+                    valid = [(jj, dd) for jj, dd in zip(np.atleast_1d(idx), np.atleast_1d(d))
+                             if np.isfinite(dd) and jj != i]
+                    # take up to max_neighbors_per_node nearest
+                    js = [jj for jj, _ in valid[:max_neighbors_per_node]]
+
+                for j in js:
+                    edge_list.append([locs[i], locs[j]])
+        else:
+            # no cap: add all neighbors within radius (except self)
+            for i, js in enumerate(neigh):
+                for j in js:
+                    if j != i:
+                        edge_list.append([locs[i], locs[j]])
+
     return edge_list
 
 
@@ -110,30 +140,12 @@ def load_tonsilbe_data(filename, distance_thres, sample_rate):
 
 
 class GraphDataset(InMemoryDataset):
-
-    def __init__(
-        self,
-        labeled_X,
-        labeled_y,
-        unlabeled_X,
-        labeled_edges,
-        unlabeled_edges,
-        transform=None,
-    ):
-        self.root = "."
+    def __init__(self, labeled_X, labeled_y, unlabeled_X, labeled_edges, unlabeled_edges, transform=None,):
+        self.root = '.'
         super(GraphDataset, self).__init__(self.root, transform)
-        self.labeled_data = Data(
-            x=torch.FloatTensor(labeled_X),
-            edge_index=torch.LongTensor(labeled_edges).T,
-            y=torch.LongTensor(labeled_y),
-        )
-        self.unlabeled_data = Data(
-            x=torch.FloatTensor(unlabeled_X),
-            edge_index=torch.LongTensor(unlabeled_edges).T,
-        )
-
+        self.labeled_data = Data(x=torch.FloatTensor(labeled_X), edge_index=torch.LongTensor(labeled_edges).T, y=torch.LongTensor(labeled_y))
+        self.unlabeled_data = Data(x=torch.FloatTensor(unlabeled_X), edge_index=torch.LongTensor(unlabeled_edges).T)
     def __len__(self):
         return 2
-
     def __getitem__(self, idx):
         return self.labeled_data, self.unlabeled_data
