@@ -10,7 +10,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from anndata import AnnData
 from torch_geometric.data import ClusterData, ClusterLoader
-from utils import MarginLoss, entropy
+from utils import MarginLoss, entropy, FCNet, Encoder
 
 
 class STELLAR:
