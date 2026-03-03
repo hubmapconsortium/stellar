@@ -1,0 +1,10 @@
+git+https://github.com/hubmapconsortium/sprm@v2.1.0
+git+https://github.com/hubmapconsortium/ome-utils@v0.3.5
+matplotlib==3.10.8
+pandas==3.0.0
+pims==0.7
+scipy==1.17.0
+numba==0.63.1
+numpy==2.0
+anndata
+spatialdata
