@@ -11,7 +11,7 @@ RUN apt-get update \
 WORKDIR /opt
 RUN python3 -m pip install --upgrade pip setuptools wheel
 
-COPY docker/requirements.txt /opt
+COPY docker/conversion/requirements.txt /opt
 RUN python3 -m pip install -r /opt/requirements.txt \
  && rm -rf /root/.cache/pip
 
