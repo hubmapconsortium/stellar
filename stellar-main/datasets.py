@@ -8,50 +8,20 @@ from sklearn.metrics import pairwise_distances
 from torch_geometric.data import Data, InMemoryDataset
 
 
-def get_hubmap_edge_index(pos, regions, distance_thres, *, max_neighbors_per_node=None):
-    """
-    Build edges within each region using a cKDTree radius query (no dense NxN matrix).
-    Optional: cap neighbors per node to further limit edges.
-    """
+def get_hubmap_edge_index(pos, regions, distance_thres):
+    # construct edge indexes when there is region information
+    pos = np.asarray(pos)
     edge_list = []
     regions_unique = np.unique(regions)
-
     for reg in regions_unique:
         locs = np.where(regions == reg)[0]
-        if len(locs) < 2:
-            continue
-
-        P = pos[locs, :]                 # (n_r, 2)
-        tree = cKDTree(P)
-
-        # vectorized: list of arrays of neighbor indices (including self)
-        neigh = tree.query_ball_point(P, r=float(distance_thres))
-
-        if max_neighbors_per_node is not None:
-            # cap neighbors per node within radius using nearest queries
-            for i, js in enumerate(neigh):
-                # remove self if present
-                js = [j for j in js if j != i]
-                if max_neighbors_per_node and len(js) > max_neighbors_per_node:
-                    # get k nearest within radius using a second query
-                    # query returns fixed k; filter by radius + drop self
-                    k = max_neighbors_per_node + 1
-                    d, idx = tree.query(P[i], k=k, distance_upper_bound=float(distance_thres))
-                    # idx/d may include invalid entries when fewer than k neighbors exist
-                    valid = [(jj, dd) for jj, dd in zip(np.atleast_1d(idx), np.atleast_1d(d))
-                             if np.isfinite(dd) and jj != i]
-                    # take up to max_neighbors_per_node nearest
-                    js = [jj for jj, _ in valid[:max_neighbors_per_node]]
-
-                for j in js:
-                    edge_list.append([locs[i], locs[j]])
-        else:
-            # no cap: add all neighbors within radius (except self)
-            for i, js in enumerate(neigh):
-                for j in js:
-                    if j != i:
-                        edge_list.append([locs[i], locs[j]])
-
+        pos_region = pos[locs, :]
+        dists = pairwise_distances(pos_region)
+        dists_mask = dists < distance_thres
+        np.fill_diagonal(dists_mask, 0)
+        region_edge_list = np.transpose(np.nonzero(dists_mask)).tolist()
+        for i, j in region_edge_list:
+            edge_list.append([locs[i], locs[j]])
     return edge_list
 
 
