@@ -13,7 +13,7 @@ outputs:
     type: Directory
     outputSource: stellar/stellar_results_for_sprm
   spatialdata_zarr:
-    type: Directory
+    type: Directory?
     outputSource: pre-convert/spatialdata_zarr
   h5ad_file:
     type: File

@@ -133,9 +133,9 @@ def convert(expr: Path, mask: Path):
 
     csv_base = expr.name.split('.', 1)
     sdata_name = f"{csv_base}_spatialdata.zarr"
-    print("Saving SpatialData object to", sdata_name)
-    print(sdata)
-    sdata.write(sdata_name, overwrite=True)
+    #print("Saving SpatialData object to", sdata_name)
+    #print(sdata)
+    #sdata.write(sdata_name, overwrite=True)
 
     return image_adata
 
