@@ -4,7 +4,6 @@ from argparse import ArgumentParser
 from pathlib import Path
 from math import ceil, log2
 import anndata
-from aicsimageio import AICSImage
 import pandas as pd
 import spatialdata as sd
 from ome_utils import find_ome_tiffs
@@ -13,6 +12,7 @@ from sprm import modules
 from xarray import DataArray
 from spatialdata.models import Image2DModel, Labels2DModel, PointsModel, TableModel
 import tracemalloc
+from bioio import BioImage
 
 desired_pixel_size_for_pyramid=250
 
@@ -79,7 +79,7 @@ def convert(expr: Path, mask: Path):
 
     print('Starting SpatialData conversion')
     print("Loading image data")
-    image = AICSImage(expr)
+    image = BioImage(expr)
     image_data_squeezed = image.data.squeeze()
     print("... done. Original shape:", image.data.shape)
 
@@ -94,7 +94,7 @@ def convert(expr: Path, mask: Path):
     )
 
     print("Loading mask data")
-    mask = AICSImage(mask)
+    mask = BioImage(mask)
     mask_data = {ch: mask.data[0, i, 0, :, :] for i, ch in enumerate(mask.channel_names)}
     cell_indexes = sorted(set(mask_data["cells"].flat) - {0})
     print("... done.", len(cell_indexes), "cells")
@@ -131,11 +131,11 @@ def convert(expr: Path, mask: Path):
         tables=tables,
     )
 
-    csv_base = expr.name.split('.', 1)
+    csv_base = expr.name.split('.', 1)[0]
     sdata_name = f"{csv_base}_spatialdata.zarr"
-    #print("Saving SpatialData object to", sdata_name)
-    #print(sdata)
-    #sdata.write(sdata_name, overwrite=True)
+    print("Saving SpatialData object to", sdata_name)
+    print(sdata)
+    sdata.write(sdata_name, overwrite=True)
 
     return image_adata
 
