@@ -40,10 +40,12 @@ class STELLAR:
             labeled_data,
             batch_size=64,
             shuffle=True,
-            num_workers=1
+            num_workers=0
         )
 
         for batch_idx, labeled_x in enumerate(labeled_loader):
+            print("batch_idx: ", batch_idx)
+            print("labeled_x: ", labeled_x)
             labeled_x = labeled_x.to(device)
             optimizer.zero_grad()
 
