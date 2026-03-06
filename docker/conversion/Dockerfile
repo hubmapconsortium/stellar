@@ -8,13 +8,23 @@ RUN apt-get update \
     libgl1-mesa-glx \
  && rm -rf /var/cache/apt/*
 
-RUN python3 -m pip install \
-    git+https://github.com/hubmapconsortium/sprm@ca3d3f91eb50522a889cf5c9b3e37b8cce4a7dd7 \
-    git+https://github.com/hubmapconsortium/ome-utils@v0.3.5 \
-    anndata \
-    pandas
-
 WORKDIR /opt
+RUN python3 -m pip install --upgrade pip setuptools wheel
+
+COPY docker/conversion/requirements.txt /opt
+RUN python3 -m pip install -r /opt/requirements.txt \
+ && rm -rf /root/.cache/pip
+
+RUN python3 -m pip install -U numexpr bottleneck
+RUN python3 -m pip install -U scikit-image
+RUN python3 -m pip install scikit-image==0.24.0
+RUN python3 -m pip install -U h5py
+RUN python3 -m pip install h5py==3.15.1
+RUN python3 -m pip install -U imagecodecs
+RUN python3 -m pip install imagecodecs
+RUN python3 -m pip install -U tables
+RUN python3 -m pip install tables==3.10.1
+
 COPY bin /opt
 
 CMD ["/bin/bash"]

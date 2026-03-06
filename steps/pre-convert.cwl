@@ -3,8 +3,8 @@ cwlVersion: v1.1
 class: CommandLineTool
 requirements:
   DockerRequirement:
-    dockerPull: hubmap/stellar-prep-convert
-  InlineJavascriptRequirement: { }
+    dockerPull: hubmap/stellar-prep-convert:latest
+  InlineJavascriptRequirement: {}
 baseCommand: "/opt/convert_input_ometiffs.py"
 
 inputs:
@@ -18,3 +18,7 @@ outputs:
     type: File
     outputBinding:
       glob: cell_data.h5ad
+  spatialdata_zarr:
+    type: Directory?
+    outputBinding:
+      glob: "*_spatialdata.zarr"
