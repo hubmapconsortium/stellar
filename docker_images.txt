@@ -1,1 +1,2 @@
 hubmap/stellar	docker/stellar/Dockerfile	base_directory_build
+hubmap/stellar-prep-convert	docker/conversion/Dockerfile	base_directory_build

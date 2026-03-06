@@ -12,10 +12,16 @@ outputs:
   stellar_results_for_sprm:
     type: Directory
     outputSource: stellar/stellar_results_for_sprm
+  spatialdata_zarr:
+    type: Directory?
+    outputSource: pre-convert/spatialdata_zarr
+  h5ad_file:
+    type: File
+    outputSource: pre-convert/h5ad_file
 
 steps:
   pre-convert:
-    run: expr-mask-convert/pipeline.cwl
+    run: steps/pre-convert.cwl
     in:
       directory: data_dir
     out:
