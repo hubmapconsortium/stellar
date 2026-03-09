@@ -137,6 +137,7 @@ def convert(expr: Path, mask: Path):
     print(sdata)
     sdata.write(sdata_name, overwrite=True)
 
+    image_adata.obs.index = csv_base + image_adata.obs.index
     return image_adata
 
 
@@ -150,7 +151,7 @@ def main(directory: Path):
     for expr, mask in zip(exprs, masks):
         adatas.append(convert(expr, mask))
 
-    adata = anndata.concat(adatas)
+    adata = anndata.concat(adatas, index_unique="-")
     adata.write_h5ad("cell_data.h5ad")
 
 

@@ -12,9 +12,9 @@ outputs:
   stellar_results_for_sprm:
     type: Directory
     outputSource: stellar/stellar_results_for_sprm
-  spatialdata_zarr:
-    type: Directory?
-    outputSource: pre-convert/spatialdata_zarr
+  spatialdata_zarrs:
+    type: Directory[]
+    outputSource: pre-convert/spatialdata_zarrs
   h5ad_file:
     type: File
     outputSource: pre-convert/h5ad_file
@@ -26,7 +26,7 @@ steps:
       directory: data_dir
     out:
       - h5ad_file
-      - spatialdata_zarr
+      - spatialdata_zarrs
 
   stellar:
     run: steps/stellar.cwl
