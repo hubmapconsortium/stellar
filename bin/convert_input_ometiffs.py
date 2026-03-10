@@ -31,6 +31,9 @@ output_dir_base = Path("sprm_features_outputs")
 def convert(expr: Path, mask: Path):
     output_dir = output_dir_base / expr.stem
     output_dir.mkdir(exist_ok=True, parents=True)
+
+    csv_base = expr.name.split('.', 1)[0]
+
     core = modules.preprocessing.run(
         img_file=expr,
         mask_file=mask,
@@ -61,9 +64,10 @@ def convert(expr: Path, mask: Path):
     # in that way.
     image_adata = anndata.AnnData(
         X=scaled_expr_array,
-        obs=pd.DataFrame(index=mean_expr.coords["cell_index"]),
+        obs=pd.DataFrame(index = [f"{csv_base}-"+str(i) for i in mean_expr.coords["cell_index"].to_series().tolist()]),
         var=pd.DataFrame(index=mean_expr.coords["expr_channel"]),
     )
+    print(image_adata.obs.index)
     expr_adata = image_adata.copy()
     # So, create the DataFrame after the AnnData, using .obs_names as the
     # index, to make sure everything matches with minimal effort.
@@ -116,7 +120,7 @@ def convert(expr: Path, mask: Path):
     }
 
     for table in tables.values():
-        table.obs["cell_id"] = table.obs.index.astype(int)
+        table.obs["cell_id"] = pd.Series([int(i.split('-')[1]) for i in table.obs.index.values], index=table.obs.index)
         table.obs["region"] = pd.Categorical(["cells"] * len(table))
         table.uns["spatialdata_attrs"] = {
             "region": "cells",
@@ -131,7 +135,6 @@ def convert(expr: Path, mask: Path):
         tables=tables,
     )
 
-    csv_base = expr.name.split('.', 1)[0]
     sdata_name = f"{csv_base}_spatialdata.zarr"
     print("Saving SpatialData object to", sdata_name)
     print(sdata)
@@ -150,7 +153,7 @@ def main(directory: Path):
     for expr, mask in zip(exprs, masks):
         adatas.append(convert(expr, mask))
 
-    adata = anndata.concat(adatas)
+    adata = anndata.concat(adatas, index_unique="-")
     adata.write_h5ad("cell_data.h5ad")
 
 
