@@ -18,7 +18,7 @@ outputs:
     type: File
     outputBinding:
       glob: cell_data.h5ad
-  spatialdata_zarr:
-    type: Directory?
+  spatialdata_zarrs:
+    type: Directory[]
     outputBinding:
       glob: "*_spatialdata.zarr"
