@@ -67,7 +67,8 @@ def convert(expr: Path, mask: Path):
         obs=pd.DataFrame(index = [f"{csv_base}-"+str(i) for i in mean_expr.coords["cell_index"].to_series().tolist()]),
         var=pd.DataFrame(index=mean_expr.coords["expr_channel"]),
     )
-    print(image_adata.obs.index)
+
+    image_adata.var_names_make_unique()
     expr_adata = image_adata.copy()
     # So, create the DataFrame after the AnnData, using .obs_names as the
     # index, to make sure everything matches with minimal effort.
