@@ -63,7 +63,7 @@ def load_hubmap_data(
         replace=False,
     )
     train_adata = train_adata_full[train_sel, common_vars].copy()
-
+    print(train_adata.obsm_keys())
     labeled_pos = train_adata.obsm["X_spatial"]
     labeled_regions = train_adata.obs["File_ID"]
 
