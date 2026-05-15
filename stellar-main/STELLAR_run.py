@@ -12,7 +12,7 @@ from utils import prepare_save_dir
 
 # TODO: generalize as appropriate with new or multiple references
 #   and move the functionality to find this
-data_filename = "20260502_64CODEX_stellar_test.ipynb"
+data_filename = "20260107_newSPRM_64CODEX_SLI_annotated.h5ad"
 
 data_dir_possibilities = [
     Path("/data"),
