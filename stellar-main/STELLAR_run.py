@@ -76,7 +76,7 @@ def main():
     parser.add_argument(
         "--num-heads",
         type=int,
-        default=22,
+        default=27,
     )
     parser.add_argument(
         "--num-seed-class",
