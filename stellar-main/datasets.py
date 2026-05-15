@@ -46,13 +46,11 @@ def load_hubmap_data(
     test_adata_full = anndata.read_h5ad(unlabeled_file)
     print("Test data variables:", test_adata_full.var_names)
 
-    common_vars = sorted(
-        set(train_adata_full.var_names) & set(test_adata_full.var_names)
-    )
-    print("Common variables:", common_vars)
-
+    # Markers must all match and be in the same orer
+    common_vars = [v for v in train_adata_full.var_names if v in test_adata_full.var_names]
+    print("Common variables (Training Order):", common_vars)
     test_adata = test_adata_full[:, common_vars].copy()
-    # test_adata.var = test_adata.var.reindex(train_adata_full.var.index)
+
     print(test_adata.var_names)
     unlabeled_pos = test_adata.obsm["X_spatial"]
     unlabeled_regions = test_adata.obs["unique_region"]
