@@ -19,15 +19,15 @@ data_dir_possibilities = [
     Path(__file__).parent / "data",
 ]
 
-model_paths = {
-    "intestine": Path("models/intestine_placeholder.pt"),
+pretrained_model_paths = {
+    "intestine": Path("models/20260502_64CODEX_stellar_trained_model_origin—version.pt"),
     # other tissues : other paths,
 }
 
 
 def find_model_file(tissue):
-    if tissue in model_paths.keys():
-        return model_paths[tissue]
+    if tissue in pretrained_model_paths.keys():
+        return pretrained_model_paths[tissue]
     else:
         return None
 
@@ -45,7 +45,7 @@ def find_data_file() -> Path:
 def main():
     parser = argparse.ArgumentParser(description="STELLAR")
     parser.add_argument("cell_data_h5ad", type=Path)
-    # parser.add_argument("tissue", type=str)
+    parser.add_argument("tissue", type=str)
 
     parser.add_argument(
         "--seed", type=int, default=1, metavar="S", help="random seed (default: 1),"
@@ -134,38 +134,39 @@ def main():
         unlabeled_edges,
     )
 
-    # # TODO: Get model path if model exists, exit program if it doesn't
-    # if find_model_file(args.tissue):
-    #     pretrained_model = torch.load(find_model_file(args.tissue))
-    #     # TODO: Add check to make sure model markers match markers in data
-    #     # load_hubmap_data() has a common_vars variable for training vs test data, maybe return that variable?
-    #     # Or are there more than just markers in adata.var?
-    #     # TODO: Not sure if I need to do anything else with the pretrained model here?
-    # else:
-    #     print(f"No pretrained model found for {args.tissue}.")
-    #     # write a csv with only cell IDs and no columns
-    #     out_dir = Path("stellar")
-    #     out_dir.mkdir(exist_ok=True, parents=True)
-    #     with open(out_dir / f"{args.cell_data_h5ad.stem}.csv", "w") as f:
-    #         print("ID,STELLAR_CellType", file=f)
-    #         for cell_id, cell_type_id in unlabeled_cell_indexes:
-    #             print(f"{cell_id}", file=f)
-    #     sys.exit("Exiting STELLAR...")
+    # TODO: Get model path if model exists, exit program if it doesn't
+    model_path = find_model_file(args.tissue)
+    if model_path:
+        # TODO: Add check to make sure model markers match markers in data
+        # load_hubmap_data() has a common_vars variable for training vs test data, maybe return that variable?
+        checkpoint = torch.load(model_path, weights_only=True)
+        saved_args = checkpoint.get('args', {})
+        # Do I need to verify anything here with the model?
+        stellar = STELLAR(args, dataset)
+        stellar.model.load_state_dict(checkpoint['model_state'])
+        stellar.model.eval()
+        _, results = stellar.pred()
 
-    stellar = STELLAR(args, dataset)
-    stellar.train()
-    _, results = stellar.pred()
+        out_dir = Path("stellar")
+        out_dir.mkdir(exist_ok=True, parents=True)
+        with open(out_dir / f"{args.cell_data_h5ad.stem}.csv", "w") as f:
+            print("ID,STELLAR_CellType", file=f)
+            for cell_id, cell_type_id in zip(unlabeled_cell_indexes, results):
+                cell_type = inverse_dict[cell_type_id]
+                print(f"{cell_id},{cell_type}", file=f)
 
-    out_dir = Path("stellar")
-    out_dir.mkdir(exist_ok=True, parents=True)
-    with open(out_dir / f"{args.cell_data_h5ad.stem}.csv", "w") as f:
-        print("ID,STELLAR_CellType", file=f)
-        for cell_id, cell_type_id in zip(unlabeled_cell_indexes, results):
-            cell_type = inverse_dict[cell_type_id]
-            print(f"{cell_id},{cell_type}", file=f)
-
-    # Should I include the accuracy evaluation from Yang's notebook?
-    print("done")
+        # Should I include the accuracy evaluation from Yang's notebook?
+        print("done")
+    else: # TODO: I do not need to get all of this info if there's not a model available
+        print(f"No pretrained model found for {args.tissue}.")
+        # write a csv with only cell IDs and no columns
+        out_dir = Path("stellar")
+        out_dir.mkdir(exist_ok=True, parents=True)
+        with open(out_dir / f"{args.cell_data_h5ad.stem}.csv", "w") as f:
+            print("ID,STELLAR_CellType", file=f)
+            for cell_id, cell_type_id in unlabeled_cell_indexes:
+                print(f"{cell_id}", file=f)
+        sys.exit("Exiting STELLAR...")
 
 
 if __name__ == "__main__":
