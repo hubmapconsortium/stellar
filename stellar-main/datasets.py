@@ -52,6 +52,7 @@ def load_hubmap_data(
     print("Common variables:", common_vars)
 
     test_adata = test_adata_full[:, common_vars].copy()
+    test_adata.var = test_adata.var.reindex(train_adata_full.var.index)
     print(test_adata.obsm_keys())
     print(test_adata.var_names)
     unlabeled_pos = test_adata.obsm["X_spatial"]
