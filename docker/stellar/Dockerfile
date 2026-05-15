@@ -31,7 +31,7 @@ RUN pip3 install -r /opt/requirements.txt \
 
 # TODO pull new h5ad objects from s3
 RUN mkdir /data
-COPY "stellar-main/data/20260502_64CODEX_stellar_trained_model_origin—version.pt" /data
+COPY "stellar-main/data/20260107_newSPRM_64CODEX_SLI_annotated.h5ad" /data
 # && cd /data \
 # && wget https://hubmap-pipeline-assets.s3.us-east-1.amazonaws.com/stellar/20241108_HuBMAP_intestine_annotated.h5ad
 
