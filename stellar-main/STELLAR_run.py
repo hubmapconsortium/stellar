@@ -20,14 +20,17 @@ data_dir_possibilities = [
 ]
 
 pretrained_model_paths = {
-    "intestine": Path("models/20260502_64CODEX_stellar_trained_model_origin—version.pt"),
+    "intestine": [Path("models/20260502_64CODEX_stellar_trained_model_origin—version.pt"),
+                  Path(__file__).parent / "models/20260502_64CODEX_stellar_trained_model_origin—version.pt"],
     # other tissues : other paths,
 }
 
 
 def find_model_file(tissue):
     if tissue in pretrained_model_paths.keys():
-        return pretrained_model_paths[tissue]
+        for path in pretrained_model_paths[tissue]:
+            if path.is_file():
+                return pretrained_model_paths[tissue]
     else:
         return None
 
