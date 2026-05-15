@@ -61,7 +61,7 @@ def main(directory, tissue, provider):
         write_result("False")
         return
     # Everything passed if we get here, pass this to the rest of the pipeline
-    write_result("True")
+    write_result(f"[{provider}, {tissue}]")
 
 
 if __name__ == "__main__":
