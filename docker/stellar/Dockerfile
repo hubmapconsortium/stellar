@@ -29,9 +29,10 @@ COPY stellar-main/requirements.txt /opt
 RUN pip3 install -r /opt/requirements.txt \
  && rm -rf /root/.cache/pip
 
-RUN mkdir /data \
- && cd /data \
- && wget https://hubmap-pipeline-assets.s3.us-east-1.amazonaws.com/stellar/20241108_HuBMAP_intestine_annotated.h5ad
+# TODO pull new h5ad objects from s3
+#RUN mkdir /data \
+# && cd /data \
+# && wget https://hubmap-pipeline-assets.s3.us-east-1.amazonaws.com/stellar/20241108_HuBMAP_intestine_annotated.h5ad
 
 COPY stellar-main /stellar-main
 
