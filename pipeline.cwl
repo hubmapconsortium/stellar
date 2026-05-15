@@ -37,7 +37,6 @@ steps:
     run: steps/pre-convert.cwl
     in:
       directory: data_dir
-      results: check-models/results
     out:
       - h5ad_file
       - spatialdata_zarrs
