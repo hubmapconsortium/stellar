@@ -30,7 +30,7 @@ def find_model_file(tissue):
     if tissue in pretrained_model_paths.keys():
         for path in pretrained_model_paths[tissue]:
             if path.is_file():
-                return pretrained_model_paths[tissue]
+                return path
     else:
         return None
 
