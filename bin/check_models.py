@@ -82,7 +82,9 @@ def find_expr_mask_dir(base_dir: Path) -> tuple[Path, Path]:
 
 
 def check_tissue(tissue):
+    print(adata_paths.keys())
     if tissue in adata_paths.keys():
+        print("found tissue adata path")
         return True
     else:
         return False
