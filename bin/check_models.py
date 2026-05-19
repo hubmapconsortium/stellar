@@ -92,7 +92,7 @@ def main(directory, tissue):
     #     write_result("False")
     #     return
     # Check if the there is a model that matches the tissue for the dataset
-    if tissue not in adata_paths.keys():
+    if tissue not in adata_paths:
         print(f"There is no STELLAR model for {tissue}.")
         write_result("False")
         return
