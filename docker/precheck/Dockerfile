@@ -13,7 +13,7 @@ RUN python3 -m pip install \
     anndata \
     pandas \
     bioio \
-    bioio-ome-tiff \
+    bioio-ome-tiff
 
 WORKDIR /opt
 COPY bin /opt
