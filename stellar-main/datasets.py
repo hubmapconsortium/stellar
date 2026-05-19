@@ -62,6 +62,7 @@ def load_hubmap_data(
     )
     train_adata = train_adata_full[train_sel, common_vars].copy()
     spatial = train_adata.obs[['x', 'y', 'z']]
+    train_adata.obsm['X_spatial'] = spatial
     labeled_pos = train_adata.obsm["X_spatial"]
     labeled_regions = train_adata.obs["File_ID"]
 
