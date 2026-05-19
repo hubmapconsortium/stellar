@@ -135,7 +135,7 @@ def main(directory, tissue):
 
 if __name__ == "__main__":
     p = ArgumentParser()
-    p.add_argument("tissue", type=Path)
+    p.add_argument("tissue", type=str)
     p.add_argument("directory", type=Path)
     args = p.parse_args()
 
