@@ -29,7 +29,7 @@ COPY stellar-main/requirements.txt /opt
 RUN pip3 install -r /opt/requirements.txt \
  && rm -rf /root/.cache/pip
 
-# TODO pull new h5ad objects from s3
+# TODO pull new h5ad objects from s3 and pt objects probably
 RUN mkdir /data
 COPY stellar-main/data/20260107_newSPRM_64CODEX_SLI_annotated.h5ad /data/20260107_newSPRM_64CODEX_SLI_annotated.h5ad
 # && cd /data \

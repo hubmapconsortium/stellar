@@ -20,4 +20,8 @@ ENV CONDA_PREFIX=/opt/conda/envs/${CONDA_ENV_NAME}
 ENV PATH=${CONDA_PREFIX}/bin:$PATH
 COPY bin /opt
 
+# TODO: pull new h5ad objects from s3
+RUN mkdir /data
+COPY stellar-main/data/20260107_newSPRM_64CODEX_SLI_annotated.h5ad /data/20260107_newSPRM_64CODEX_SLI_annotated.h5ad
+
 CMD ["/bin/bash"]
