@@ -81,6 +81,13 @@ def find_expr_mask_dir(base_dir: Path) -> tuple[Path, Path]:
     raise ValueError("Couldn't find image and mask directories")
 
 
+def check_tissue(tissue):
+    if tissue in adata_paths.keys():
+        return True
+    else:
+        return False
+
+
 def write_result(val):
     with open("results.txt", "w") as f:
         f.write(val)
@@ -92,7 +99,7 @@ def main(directory, tissue):
     #     write_result("False")
     #     return
     # Check if the there is a model that matches the tissue for the dataset
-    if tissue not in adata_paths:
+    if not check_tissue(tissue):
         print(f"There is no STELLAR model for {tissue}.")
         write_result("False")
         return
