@@ -31,7 +31,9 @@ def standardize_antb_df(antibodies_df: pd.DataFrame) -> pd.DataFrame:
     Helper function to standardize antibody names.
     """
     for idx, row in antibodies_df.iterrows():
+        print(idx)
         new_name = find_antibody_key(idx)
+        print(new_name)
         antibodies_df = antibodies_df.rename(index={idx: new_name})
     return antibodies_df
 
