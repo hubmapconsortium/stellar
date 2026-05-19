@@ -85,8 +85,9 @@ def load_hubmap_data(
     print("Training data variables:", train_adata_full.var_names)
 
     test_adata_full = anndata.read_h5ad(unlabeled_file)
+    print("Test data variables before standardizing:", test_adata_full.var_names)
     test_adata_full.var = standardize_antb_df(test_adata_full.var)
-    print("Test data variables:", test_adata_full.var_names)
+    print("Test data variables after standardizing:", test_adata_full.var_names)
 
     # Markers must all match and be in the same orer
     common_vars = [v for v in train_adata_full.var_names if v in test_adata_full.var_names]
