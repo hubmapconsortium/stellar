@@ -63,14 +63,14 @@ def find_antibody_key(value: str) -> str:
             return key
     return value
 
-def find_data_file(tissue) -> Path:
+def find_data_file(tissue):
     for path in data_dir_possibilities:
         if (f := path / adata_paths[tissue]).is_file():
             print("Found training data file at", f)
             return f
     message_pieces = [f"Couldn't find data directory; tried:"]
     message_pieces.extend([f"\t{path}" for path in data_dir_possibilities])
-    raise FileNotFoundError("\n".join(message_pieces))
+    return None
 
 
 def find_expr_mask_dir(base_dir: Path) -> tuple[Path, Path]:
@@ -101,7 +101,8 @@ def main(directory, tissue):
     #     write_result("False")
     #     return
     # Check if the there is a model that matches the tissue for the dataset
-    if not check_tissue(tissue):
+    adata_path = find_data_file(tissue)
+    if not adata_path:
         print(f"There is no STELLAR model for {tissue}.")
         write_result("False")
         return
@@ -115,7 +116,7 @@ def main(directory, tissue):
     print("Provider channel names after standardizing:")
     standardize_antb_names(provider_ch_names)
     print(provider_ch_names)
-    adata = ad.read_h5ad(adata_paths[tissue])
+    adata = ad.read_h5ad(adata_path)
     train_ch_names = adata.var_names.to_list()
     print("Training channel names:")
     print(train_ch_names)
