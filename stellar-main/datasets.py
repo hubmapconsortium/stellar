@@ -8,7 +8,7 @@ from sklearn.metrics import pairwise_distances
 from torch_geometric.data import Data, InMemoryDataset
 
 antibodies_dict = {
-    "BCL-2": "BCL2",
+    "BCL2": "BCL-2",
     "Collagen IV": ["CollIV", "CollagenIV", "collagen IV", "COLIV"],
     "Cytokeratin": "cytokeratin",
     "eCAD": ["E-CAD", "ECAD"],
