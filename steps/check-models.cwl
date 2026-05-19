@@ -3,7 +3,7 @@ cwlVersion: v1.1
 class: CommandLineTool
 requirements:
   DockerRequirement:
-    dockerPull: hubmap/stellar:latest
+    dockerPull: hubmap/stellar-prep-convert:latest
   InlineJavascriptRequirement: { }
 baseCommand: "/opt/check_models.py"
 
@@ -13,15 +13,10 @@ inputs:
     inputBinding:
       position: 0
 
-  provider:
-    type: string
-    inputBinding:
-      position: 1
-
   directory:
     type: Directory
     inputBinding:
-      position: 2
+      position: 1
 
 outputs:
   model_test_results:

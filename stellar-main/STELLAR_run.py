@@ -140,11 +140,8 @@ def main():
     # TODO: Get model path if model exists, exit program if it doesn't
     model_path = find_model_file(args.tissue)
     if model_path:
-        # TODO: Add check to make sure model markers match markers in data
-        # load_hubmap_data() has a common_vars variable for training vs test data, maybe return that variable?
         checkpoint = torch.load(model_path, weights_only=True)
         saved_args = checkpoint.get('args', {})
-        # Do I need to verify anything here with the model?
         stellar = STELLAR(args, dataset)
         stellar.model.load_state_dict(checkpoint['model_state'])
         stellar.model.eval()
