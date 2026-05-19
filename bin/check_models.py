@@ -5,6 +5,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import anndata as ad
+import bioio_ome_tiff
 import numpy as np
 import pandas as pd
 from bioio import BioImage
@@ -109,7 +110,7 @@ def main(directory, tissue):
     # Open provider image and then training data to check for marker names
     expr_dir, mask_dir = find_expr_mask_dir(directory)
     exprs = sorted(find_ome_tiffs(expr_dir))
-    provider_imgs = [BioImage(expr) for expr in exprs]
+    provider_imgs = [BioImage(expr, reader=bioio_ome_tiff.Reader) for expr in exprs]
     provider_ch_names = [str(i) for i in provider_imgs[0].channel_names]
     print("Provider channel names before standardizing:")
     print(provider_ch_names)
