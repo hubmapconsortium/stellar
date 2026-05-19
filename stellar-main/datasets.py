@@ -42,6 +42,7 @@ def load_hubmap_data(
     print(train_adata_full)
     print(train_adata_full.obs)
     print("Training data variables:", train_adata_full.var_names)
+    print(len(train_adata_full.var_names))
 
     test_adata_full = anndata.read_h5ad(unlabeled_file)
     print("Test data variables:", test_adata_full.var_names)
@@ -50,6 +51,7 @@ def load_hubmap_data(
     common_vars = [v for v in train_adata_full.var_names if v in test_adata_full.var_names]
     print("Common variables (Training Order):", common_vars)
     test_adata = test_adata_full[:, common_vars].copy()
+    print(len(test_adata.var_names))
 
     print(test_adata.var_names)
     unlabeled_pos = test_adata.obsm["X_spatial"]
