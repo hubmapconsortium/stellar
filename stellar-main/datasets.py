@@ -9,7 +9,7 @@ from torch_geometric.data import Data, InMemoryDataset
 
 antibodies_dict = {
     "BCL2": "BCL-2",
-    "Collagen IV": ["CollIV", "CollagenIV", "collagen IV", "COLIV"],
+    "CollagenIV": ["CollIV", "Collagen IV", "collagen IV", "COLIV"],
     "Cytokeratin": "cytokeratin",
     "eCAD": ["E-CAD", "ECAD"],
     "HLA-DR": "HLADR",
