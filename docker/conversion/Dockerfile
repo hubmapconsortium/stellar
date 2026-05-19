@@ -27,4 +27,8 @@ RUN python3 -m pip install tables==3.10.1
 
 COPY bin /opt
 
+# TODO: pull new h5ad objects from s3
+RUN mkdir /data
+COPY stellar-main/data/20260107_newSPRM_64CODEX_SLI_annotated.h5ad /data/20260107_newSPRM_64CODEX_SLI_annotated.h5ad
+
 CMD ["/bin/bash"]
