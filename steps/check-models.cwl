@@ -3,7 +3,7 @@ cwlVersion: v1.1
 class: CommandLineTool
 requirements:
   DockerRequirement:
-    dockerPull: hubmap/stellar-prep-convert:latest
+    dockerPull: hubmap/stellar-precheck:latest
   InlineJavascriptRequirement: { }
 baseCommand: "/opt/check_models.py"
 
