@@ -7,12 +7,8 @@ from pathlib import Path
 import anndata as ad
 import numpy as np
 import pandas as pd
-import torch
 from bioio import BioImage
-from datasets import GraphDataset, load_hubmap_data, load_tonsilbe_data
 from ome_utils import find_ome_tiffs
-from STELLAR import STELLAR
-from utils import prepare_save_dir
 
 data_dir_possibilities = [
     Path("/data"),
