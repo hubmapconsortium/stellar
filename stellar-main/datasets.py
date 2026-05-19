@@ -18,9 +18,9 @@ antibodies_dict = {
     "Podoplanin": ["Podoplan", "podoplanin", "PDPN"],
     "Synaptophysin": ["Synapt", "Synapto"],
     "aDefensin5": ["aDef5", "aDefensin 5"],
-    "MUC-1": "MUC1/EMA",
+    "MUC1": ["MUC1/EMA", "MUC-1"],
     "NKG2D (CD314)": ["NKG2D", "NKG2G"],
-    "a-SMA": ["SMActin", "aSMA", "SMA"],
+    "aSMA": ["SMActin", "a-SMA", "SMA"],
     "MUC2": "MUC-2",
     "Foxp3": "FoxP3",
 }
