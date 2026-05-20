@@ -89,11 +89,10 @@ def load_hubmap_data(
     test_adata_full.var = standardize_antb_df(test_adata_full.var)
     print("Test data variables after standardizing:", test_adata_full.var_names)
 
-    # Markers must all match and be in the same orer
+    # Markers must all match and be in the same order
     common_vars = [v for v in train_adata_full.var_names if v in test_adata_full.var_names]
     print("Common variables (Training Order):", common_vars)
     test_adata = test_adata_full[:, common_vars].copy()
-    print(test_adata.var_names)
 
     unlabeled_pos = test_adata.obsm["X_spatial"]
     unlabeled_regions = test_adata.obs["unique_region"]

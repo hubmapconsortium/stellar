@@ -6,6 +6,7 @@ from math import ceil, log2
 import anndata
 import pandas as pd
 import spatialdata as sd
+import numpy as np
 from ome_utils import find_ome_tiffs
 from sklearn.preprocessing import StandardScaler
 from sprm import modules
@@ -15,6 +16,93 @@ import tracemalloc
 from bioio import BioImage
 
 desired_pixel_size_for_pyramid=250
+
+data_dir_possibilities = [
+    Path("/data"),
+    Path(__file__).parent / "data",
+]
+
+adata_paths = {
+    "intestine": Path("20260107_newSPRM_64CODEX_SLI_annotated.h5ad"),
+    # other tissues : other paths,
+}
+
+possible_providers = [] # TODO: put providers here
+
+antibodies_dict = {
+    "BCL2": "BCL-2",
+    "CollagenIV": ["CollIV", "Collagen IV", "collagen IV", "COLIV"],
+    "Cytokeratin": "cytokeratin",
+    "eCAD": ["E-CAD", "ECAD"],
+    "HLA-DR": "HLADR",
+    "Hoechst1": "HOECHST1",
+    "PanCK": "panCK",
+    "Podoplanin": ["Podoplan", "podoplanin", "PDPN"],
+    "Synaptophysin": ["Synapt", "Synapto"],
+    "aDefensin5": ["aDef5", "aDefensin 5"],
+    "MUC1": ["MUC1/EMA", "MUC-1"],
+    "NKG2D (CD314)": ["NKG2D", "NKG2G"],
+    "aSMA": ["SMActin", "a-SMA", "SMA"],
+    "MUC2": "MUC-2",
+    "Foxp3": "FoxP3",
+}
+
+
+def standardize_antb_df(antibodies_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Helper function to standardize antibody names.
+    """
+    for idx, row in antibodies_df.iterrows():
+        new_name = find_antibody_key(idx)
+        antibodies_df = antibodies_df.rename(index={idx: new_name})
+    return antibodies_df
+
+
+def find_antibody_key(value: str) -> str:
+    """
+    Helper function to standardize antibody names.
+    """
+    value_lower = value.strip().lower()
+    for key, val in antibodies_dict.items():
+        if isinstance(val, str) and val.strip().lower() == value_lower:
+            return key
+        elif isinstance(val, list) and value_lower in [v.strip().lower() for v in val]:
+            return key
+    return value
+
+
+def find_data_file(tissue):
+    for path in data_dir_possibilities:
+        if (f := path / adata_paths[tissue]).is_file():
+            print("Found training data file at", f)
+            return f
+    message_pieces = [f"Couldn't find data directory; tried:"]
+    message_pieces.extend([f"\t{path}" for path in data_dir_possibilities])
+    return None
+
+
+def check_tissue(tissue):
+    print(adata_paths.keys())
+    if tissue in adata_paths.keys():
+        print("found tissue adata path")
+        return True
+    else:
+        return False
+
+
+def write_pseudo_adata():
+    with open("results.txt", "w") as f:
+        X = np.random.rand(3, 5)
+        obs_df = pd.DataFrame(
+            index=[f"cell_{i}" for i in range(3)],
+            data = {"fake": np.random.randint(0,3, size=3), "stage": "mock"}
+        )
+        var_df = pd.DataFrame(
+            index=[f"gene_{j}" for j in range(5)]
+        )
+        fake_adata = anndata.AnnData(X=X, obs=obs_df, var=var_df)
+        fake_adata.write_h5ad("no_model.h5ad")
+
 
 def find_expr_mask_dir(base_dir: Path) -> tuple[Path, Path]:
     if (d := base_dir / "pipeline_output").is_dir():
@@ -144,7 +232,16 @@ def convert(expr: Path, mask: Path):
     return image_adata
 
 
-def main(directory: Path):
+def main(directory: Path, tissue: str):
+    # Check if a model is available before opening the image
+    # TODO: check for provider as well when I receive that info
+    adata_path = find_data_file(tissue)
+    if not adata_path:
+        print(f"There is no STELLAR model for {tissue}.")
+        write_pseudo_adata()
+        return
+
+    train_adata = anndata.read_h5ad(adata_path)
     tracemalloc.start()
     expr_dir, mask_dir = find_expr_mask_dir(directory)
     exprs = sorted(find_ome_tiffs(expr_dir))
@@ -155,12 +252,29 @@ def main(directory: Path):
         adatas.append(convert(expr, mask))
 
     adata = anndata.concat(adatas, index_unique="-")
-    adata.write_h5ad("cell_data.h5ad")
+    # Check if antibody names match
+    test_var = standardize_antb_df(adata.var)
+    print("Training data variables:", train_adata.var_names)
+    print("Test data variables before standardizing:", adata.var_names)
+    print("Test data variables after standardizing:", test_var)
+    adata.var = test_var
+    # Markers must all match and be in the same order
+    common_vars = [v for v in train_adata.var_names if v in adata.var_names]
+    print("Common variables (Training Order):", common_vars)
+    test_adata = adata[:, common_vars].copy()
+    if train_adata.var_names != test_adata.var_names:
+        missing_vars = train_adata.var_names.difference(test_adata.var_names)
+        print("The following variables are missing from the test data:", missing_vars)
+        write_pseudo_adata()
+        return
+
+    test_adata.write_h5ad("cell_data.h5ad")
 
 
 if __name__ == "__main__":
     p = ArgumentParser()
     p.add_argument("directory", type=Path)
+    p.add_argument("tissue", typ=str)
     args = p.parse_args()
 
-    main(args.directory)
+    main(args.directory, args.tissue)
