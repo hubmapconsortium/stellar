@@ -12,6 +12,10 @@ inputs:
     type: Directory
     inputBinding:
       position: 0
+  tissue
+    type: Directory
+    inputBinding:
+      position: 0
 
 outputs:
   h5ad_file:
