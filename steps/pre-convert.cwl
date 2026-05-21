@@ -13,9 +13,9 @@ inputs:
     inputBinding:
       position: 0
   tissue
-    type: Directory
+    type: string
     inputBinding:
-      position: 0
+      position: 1
 
 outputs:
   h5ad_file:
