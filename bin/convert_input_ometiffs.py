@@ -274,7 +274,7 @@ def main(directory: Path, tissue: str):
 if __name__ == "__main__":
     p = ArgumentParser()
     p.add_argument("directory", type=Path)
-    p.add_argument("tissue", typ=str)
+    p.add_argument("tissue", type=str)
     args = p.parse_args()
 
     main(args.directory, args.tissue)
