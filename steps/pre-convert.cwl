@@ -12,7 +12,7 @@ inputs:
     type: Directory
     inputBinding:
       position: 0
-  tissue
+  tissue:
     type: string
     inputBinding:
       position: 1
