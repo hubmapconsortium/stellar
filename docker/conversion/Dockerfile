@@ -25,7 +25,7 @@ RUN python3 -m pip install imagecodecs==2026.1.14
 RUN python3 -m pip install -U tables
 RUN python3 -m pip install tables==3.10.1
 RUN python3 -m pip install numpy==2.0
-RUN python3 -m pip install setuptools
+RUN python3 -m pip install setuptools==81.0.0
 
 COPY bin /opt
 
