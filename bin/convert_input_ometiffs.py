@@ -262,8 +262,8 @@ def main(directory: Path, tissue: str):
     common_vars = [v for v in train_adata.var_names if v in adata.var_names]
     print("Common variables (Training Order):", common_vars)
     test_adata = adata[:, common_vars].copy()
-    if train_adata.var_names != test_adata.var_names:
-        missing_vars = train_adata.var_names.difference(test_adata.var_names)
+    if train_adata.var_names.to_list() != test_adata.var_names.to_list():
+        missing_vars = train_adata.var_names.to_list().difference(test_adata.var_names.to_list())
         print("The following variables are missing from the test data:", missing_vars)
         write_pseudo_adata()
         return
