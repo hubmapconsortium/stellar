@@ -7,47 +7,6 @@ import torch
 from sklearn.metrics import pairwise_distances
 from torch_geometric.data import Data, InMemoryDataset
 
-antibodies_dict = {
-    "BCL2": "BCL-2",
-    "CollagenIV": ["CollIV", "Collagen IV", "collagen IV", "COLIV"],
-    "Cytokeratin": "cytokeratin",
-    "eCAD": ["E-CAD", "ECAD"],
-    "HLA-DR": "HLADR",
-    "Hoechst1": "HOECHST1",
-    "PanCK": "panCK",
-    "Podoplanin": ["Podoplan", "podoplanin", "PDPN"],
-    "Synaptophysin": ["Synapt", "Synapto"],
-    "aDefensin5": ["aDef5", "aDefensin 5"],
-    "MUC1": ["MUC1/EMA", "MUC-1"],
-    "NKG2D (CD314)": ["NKG2D", "NKG2G"],
-    "aSMA": ["SMActin", "a-SMA", "SMA"],
-    "MUC2": "MUC-2",
-    "Foxp3": "FoxP3",
-}
-
-
-def standardize_antb_df(antibodies_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Helper function to standardize antibody names.
-    """
-    for idx, row in antibodies_df.iterrows():
-        new_name = find_antibody_key(idx)
-        antibodies_df = antibodies_df.rename(index={idx: new_name})
-    return antibodies_df
-
-
-def find_antibody_key(value: str) -> str:
-    """
-    Helper function to standardize antibody names.
-    """
-    value_lower = value.strip().lower()
-    for key, val in antibodies_dict.items():
-        if isinstance(val, str) and val.strip().lower() == value_lower:
-            return key
-        elif isinstance(val, list) and value_lower in [v.strip().lower() for v in val]:
-            return key
-    return value
-
 
 def get_hubmap_edge_index(pos, regions, distance_thres):
     # construct edge indexes when there is region information
@@ -85,9 +44,7 @@ def load_hubmap_data(
     print("Training data variables:", train_adata_full.var_names)
 
     test_adata_full = anndata.read_h5ad(unlabeled_file)
-    print("Test data variables before standardizing:", test_adata_full.var_names)
-    test_adata_full.var = standardize_antb_df(test_adata_full.var)
-    print("Test data variables after standardizing:", test_adata_full.var_names)
+    print("Test data variables:", test_adata_full.var_names)
 
     # Markers must all match and be in the same order
     common_vars = [v for v in train_adata_full.var_names if v in test_adata_full.var_names]
