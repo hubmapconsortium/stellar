@@ -6,8 +6,6 @@ RUN apt-get update \
  && apt-get -y install libgl1-mesa-glx \
  && rm -rf /var/cache/apt/*
 
-RUN conda install lxml
-
 WORKDIR /opt
 RUN python3 -m pip install --upgrade pip setuptools wheel
 
