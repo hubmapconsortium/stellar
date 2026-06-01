@@ -11,7 +11,6 @@ from ome_utils import find_ome_tiffs
 from sklearn.preprocessing import StandardScaler
 from sprm import modules
 from xarray import DataArray
-from spatialdata.models import Image2DModel, Labels2DModel, PointsModel, TableModel
 import tracemalloc
 from bioio import BioImage
 
@@ -169,65 +168,6 @@ def convert(expr: Path, mask: Path):
     image_adata.obs["unique_region"] = expr.stem
 
     print('SPRM conversion complete')
-
-    print('Starting SpatialData conversion')
-    print("Loading image data")
-    image = BioImage(expr)
-    image_data_squeezed = image.data.squeeze()
-    print("... done. Original shape:", image.data.shape)
-
-    image_scale_factors = (2,) * ceil(
-        log2(max(image_data_squeezed.shape[1:]) / desired_pixel_size_for_pyramid)
-    )
-
-    img_for_sdata = Image2DModel.parse(
-        data=image_data_squeezed,
-        c_coords=image.channel_names,
-        scale_factors=image_scale_factors,
-    )
-
-    print("Loading mask data")
-    mask = BioImage(mask)
-    mask_data = {ch: mask.data[0, i, 0, :, :] for i, ch in enumerate(mask.channel_names)}
-    cell_indexes = sorted(set(mask_data["cells"].flat) - {0})
-    print("... done.", len(cell_indexes), "cells")
-
-    masks_for_sdata = {
-        ch: Labels2DModel.parse(
-            data=mask_array,
-            scale_factors=image_scale_factors,
-        )
-        for ch, mask_array in mask_data.items()
-    }
-
-    cell_centers_copy = cell_centers_df.copy()
-    cell_centers_copy.columns = ['y', 'x']
-    shapes_for_sdata = PointsModel.parse(cell_centers_copy)
-
-    tables = {
-        "mean_expr": TableModel.parse(expr_adata),
-    }
-
-    for table in tables.values():
-        table.obs["cell_id"] = pd.Series([int(i.split('-')[1]) for i in table.obs.index.values], index=table.obs.index)
-        table.obs["region"] = pd.Categorical(["cells"] * len(table))
-        table.uns["spatialdata_attrs"] = {
-            "region": "cells",
-            "region_key": "region",
-            "instance_key": "cell_id",
-        }
-
-    sdata = sd.SpatialData(
-        images={"expression": img_for_sdata},
-        points={"centers": shapes_for_sdata},
-        labels=masks_for_sdata,
-        tables=tables,
-    )
-
-    sdata_name = f"{csv_base}_spatialdata.zarr"
-    print("Saving SpatialData object to", sdata_name)
-    print(sdata)
-    sdata.write(sdata_name, overwrite=True)
 
     return image_adata
 
