@@ -19,7 +19,7 @@ outputs:
   h5ad_file:
     type: File
     outputSource: pre-convert/h5ad_file
-
+steps:
   pre-convert:
     run: steps/pre-convert.cwl
     in:
