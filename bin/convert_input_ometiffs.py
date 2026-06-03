@@ -156,7 +156,6 @@ def convert(expr: Path, mask: Path):
     )
 
     image_adata.var_names_make_unique()
-    expr_adata = image_adata.copy()
     # So, create the DataFrame after the AnnData, using .obs_names as the
     # index, to make sure everything matches with minimal effort.
     cell_centers_df = pd.DataFrame(
