@@ -16,9 +16,6 @@ outputs:
   stellar_results_for_sprm:
     type: Directory
     outputSource: stellar/stellar_results_for_sprm
-  spatialdata_zarrs:
-    type: Directory[]
-    outputSource: pre-convert/spatialdata_zarrs
   h5ad_file:
     type: File
     outputSource: pre-convert/h5ad_file
