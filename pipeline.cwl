@@ -10,7 +10,7 @@ inputs:
   tissue:
     type: string
   provider:
-    type: string
+    type: string?
 
 outputs:
   stellar_results_for_sprm:
