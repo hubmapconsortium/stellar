@@ -15,14 +15,10 @@ COPY docker/conversion/requirements.txt /opt
 RUN python3 -m pip install -r /opt/requirements.txt \
  && rm -rf /root/.cache/pip
 
-RUN python3 -m pip install -U numexpr bottleneck
-RUN python3 -m pip install -U scikit-image
+RUN python3 -m pip install numexpr bottleneck
 RUN python3 -m pip install scikit-image==0.24.0
-RUN python3 -m pip install -U h5py
 RUN python3 -m pip install h5py==3.15.1
-RUN python3 -m pip install -U imagecodecs
 RUN python3 -m pip install imagecodecs==2026.1.14
-RUN python3 -m pip install -U tables
 RUN python3 -m pip install tables==3.10.1
 RUN python3 -m pip install numpy==2.0
 RUN python3 -m pip install setuptools==81.0.0
