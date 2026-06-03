@@ -23,28 +23,18 @@ outputs:
     type: File
     outputSource: pre-convert/h5ad_file
 
-steps:
-  check-models:
-    run: steps/check_models.cwl
-    in:
-      tissue: tissue
-      provider: provider
-      directory: data_dir
-    out:
-      - results
-
   pre-convert:
     run: steps/pre-convert.cwl
     in:
       directory: data_dir
+      tissue: tissue
     out:
       - h5ad_file
-      - spatialdata_zarrs
 
   stellar:
     run: steps/stellar.cwl
     in:
       h5ad_file: pre-convert/h5ad_file
-      results: check-models/results
+      tissue: tissue
     out:
       - stellar_results_for_sprm
