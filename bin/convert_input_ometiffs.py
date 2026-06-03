@@ -5,7 +5,6 @@ from pathlib import Path
 from math import ceil, log2
 import anndata
 import pandas as pd
-import spatialdata as sd
 import numpy as np
 from ome_utils import find_ome_tiffs
 from sklearn.preprocessing import StandardScaler
