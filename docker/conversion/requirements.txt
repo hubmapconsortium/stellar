@@ -9,3 +9,4 @@ numpy
 anndata==0.12.7
 xarray-spatial
 packaging<25.0
+aicsimageio
