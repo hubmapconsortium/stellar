@@ -1,4 +1,4 @@
-git+https://github.com/hubmapconsortium/sprm@pennycuda/stellar
+git+https://github.com/hubmapconsortium/sprm8f24b707765a3baad33ea0ac01eb61e523f49a4a
 git+https://github.com/hubmapconsortium/ome-utils@v0.3.5
 matplotlib
 pandas
