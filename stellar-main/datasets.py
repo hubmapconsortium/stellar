@@ -39,6 +39,7 @@ def load_hubmap_data(
     labeled_file: Path, unlabeled_file: Path, distance_thres, sample_rate
 ):
     train_adata_full = anndata.read_h5ad(labeled_file)
+    train_adata_full = train_adata_full[train_adata_full.obs['cell_type'] != 'Noise']
     print(train_adata_full)
     print(train_adata_full.obs)
     print("Training data variables:", train_adata_full.var_names)
