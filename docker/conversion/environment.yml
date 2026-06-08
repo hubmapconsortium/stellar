@@ -1,0 +1,14 @@
+name: stellar-pre-convert
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python==3.12
+  - pip
+  - anndata==0.12.7
+  - pip:
+      - git+https://github.com/hubmapconsortium/sprm@pennycuda/quickfix
+      - git+https://github.com/hubmapconsortium/ome-utils@v0.3.5
+      - spatialdata==0.6.0
+      - xarray-spatial
+      - setuptools<82.0
