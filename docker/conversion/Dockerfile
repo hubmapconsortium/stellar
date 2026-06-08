@@ -24,6 +24,7 @@ RUN python3 -m pip install -U imagecodecs
 RUN python3 -m pip install imagecodecs
 RUN python3 -m pip install -U tables
 RUN python3 -m pip install tables==3.10.1
+RUN python3 -m pip install numpy==2.0
 
 COPY bin /opt
 
