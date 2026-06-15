@@ -147,7 +147,9 @@ def main():
     # TODO: Get model path if model exists, exit program if it doesn't
     model_path = find_model_file(args.tissue)
     if model_path:
+        print(model_path)
         checkpoint = torch.load(model_path, weights_only=True)
+        print(checkpoint)
         saved_args = checkpoint.get('args', {})
         stellar = STELLAR(args, dataset)
         stellar.model.load_state_dict(checkpoint['model_state'])
