@@ -150,7 +150,7 @@ def main():
         checkpoint = torch.load(model_path, weights_only=True)
         # Get the number of cell types from the model
         saved_args = checkpoint.get('args', {})
-        args['num_heads'] = saved_args['num_heads']
+        args.num_heads = saved_args.num_heads
         stellar = STELLAR(args, dataset)
         stellar.model.load_state_dict(checkpoint['model_state'])
         stellar.model.eval()
