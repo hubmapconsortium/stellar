@@ -21,6 +21,8 @@ data_dir_possibilities = [
 pretrained_model_paths = {
     "intestine": [Path("models/20260502_64CODEX_stellar_trained_model_origin—version.pt"),
                   Path(__file__).parent / "models/20260502_64CODEX_stellar_trained_model_origin—version.pt"],
+    "skin": [Path("models/20260612_12CODEX_stellar_trained_model_origin—cell_type_6_alldatasets.pt"),
+                  Path(__file__).parent / "models/20260612_12CODEX_stellar_trained_model_origin—cell_type_6_alldatasets.pt"],
     # other tissues : other paths,
 }
 
