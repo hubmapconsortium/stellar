@@ -18,8 +18,11 @@ ENV CONDA_PREFIX=/opt/conda/envs/${CONDA_ENV_NAME}
 ENV PATH=${CONDA_PREFIX}/bin:$PATH
 COPY bin /opt
 
-# TODO: pull new h5ad objects from s3
+# TODO: pull new all h5ad objects from s3
 RUN mkdir /data
 COPY stellar-main/data/20260107_newSPRM_64CODEX_SLI_annotated.h5ad /data/20260107_newSPRM_64CODEX_SLI_annotated.h5ad
+RUN cd /data \
+ && wget https://hubmap-pipeline-assets.s3.us-east-1.amazonaws.com/stellar/20260324_skin_v5_12data_leiden15_noCD3_refine_labeled_with_spatial.h5ad
+
 
 CMD ["/bin/bash"]

@@ -29,13 +29,17 @@ COPY stellar-main/requirements.txt /opt
 RUN pip3 install -r /opt/requirements.txt \
  && rm -rf /root/.cache/pip
 
-# TODO pull new h5ad objects from s3 and pt objects probably
+# TODO pull all new h5ad objects from s3 and pt objects probably
 RUN mkdir /data
 COPY stellar-main/data/20260107_newSPRM_64CODEX_SLI_annotated.h5ad /data/20260107_newSPRM_64CODEX_SLI_annotated.h5ad
-# && cd /data \
-# && wget https://hubmap-pipeline-assets.s3.us-east-1.amazonaws.com/stellar/20241108_HuBMAP_intestine_annotated.h5ad
+RUN cd /data \
+  && wget https://hubmap-pipeline-assets.s3.us-east-1.amazonaws.com/stellar/20260324_skin_v5_12data_leiden15_noCD3_refine_labeled_with_spatial.h5ad
 
 COPY stellar-main /stellar-main
+
+RUN cd /stellar-main/models \
+  && wget https://hubmap-pipeline-assets.s3.us-east-1.amazonaws.com/stellar/20260612_12CODEX_stellar_trained_model_origin—cell_type_6_alldatasets.pt
+
 
 # Set the new directory as the working directory
 WORKDIR /stellar-main
