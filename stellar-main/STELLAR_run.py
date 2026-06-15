@@ -152,7 +152,7 @@ def main():
         print(checkpoint)
         saved_args = checkpoint.get('args', {})
         stellar = STELLAR(args, dataset)
-        print(stellar.model)
+        print(stellar.model.args)
         stellar.model.load_state_dict(checkpoint['model_state'])
         stellar.model.eval()
         _, results = stellar.pred()
