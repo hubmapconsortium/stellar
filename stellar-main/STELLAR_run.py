@@ -80,11 +80,11 @@ def main():
         type=float,
         default=5e-2,
     )
-    parser.add_argument(
-        "--num-heads",
-        type=int,
-        default=27,
-    )
+    # parser.add_argument(
+    #     "--num-heads",
+    #     type=int,
+    #     default=27,
+    # )
     parser.add_argument(
         "--num-seed-class",
         type=int,
@@ -147,12 +147,11 @@ def main():
     # TODO: Get model path if model exists, exit program if it doesn't
     model_path = find_model_file(args.tissue)
     if model_path:
-        print(model_path)
         checkpoint = torch.load(model_path, weights_only=True)
-        print(checkpoint)
+        # Get the number of cell types from the model
         saved_args = checkpoint.get('args', {})
+        args['num_heads'] = saved_args['num_heads']
         stellar = STELLAR(args, dataset)
-        print(stellar.args)
         stellar.model.load_state_dict(checkpoint['model_state'])
         stellar.model.eval()
         _, results = stellar.pred()
