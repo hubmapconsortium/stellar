@@ -22,6 +22,7 @@ data_dir_possibilities = [
 
 adata_paths = {
     "intestine": Path("20260107_newSPRM_64CODEX_SLI_annotated.h5ad"),
+    "skin": Path("20260324_skin_v5_12data_leiden15_noCD3_refine_labeled_with_spatial.h5ad"),
     # other tissues : other paths,
 }
 

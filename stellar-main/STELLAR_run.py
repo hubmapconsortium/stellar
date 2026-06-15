@@ -12,7 +12,6 @@ from utils import prepare_save_dir
 
 # TODO: generalize as appropriate with new or multiple references
 #   and move the functionality to find this
-data_filename = "20260107_newSPRM_64CODEX_SLI_annotated.h5ad"
 
 data_dir_possibilities = [
     Path("/data"),
@@ -22,6 +21,12 @@ data_dir_possibilities = [
 pretrained_model_paths = {
     "intestine": [Path("models/20260502_64CODEX_stellar_trained_model_origin—version.pt"),
                   Path(__file__).parent / "models/20260502_64CODEX_stellar_trained_model_origin—version.pt"],
+    # other tissues : other paths,
+}
+
+reference_paths = {
+    "intestine": Path("20260107_newSPRM_64CODEX_SLI_annotated.h5ad"),
+    "skin": Path("20260324_skin_v5_12data_leiden15_noCD3_refine_labeled_with_spatial.h5ad"),
     # other tissues : other paths,
 }
 
@@ -35,9 +40,9 @@ def find_model_file(tissue):
         return None
 
 
-def find_data_file() -> Path:
+def find_data_file(tissue) -> Path:
     for path in data_dir_possibilities:
-        if (f := path / data_filename).is_file():
+        if (f := path / reference_paths[tissue]).is_file():
             print("Found training data file at", f)
             return f
     message_pieces = [f"Couldn't find data directory; tried:"]
@@ -124,7 +129,7 @@ def main():
         inverse_dict,
         unlabeled_cell_indexes,
     ) = load_hubmap_data(
-        find_data_file(),
+        find_data_file(args.tissue),
         args.cell_data_h5ad,
         args.distance_thres,
         args.sample_rate,
