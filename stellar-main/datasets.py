@@ -86,15 +86,17 @@ def load_hubmap_data(
     train_adata_full = train_adata_full[train_adata_full.obs['cell_type'] != 'Noise']
     print(train_adata_full)
     print(train_adata_full.obs)
+    train_var = [v.lower() for v in list(train_adata_full.var_names)]
     print("Training data variables:", train_adata_full.var_names)
 
     test_adata_full = anndata.read_h5ad(unlabeled_file)
     # test_var = standardize_antb_df(test_adata_full.var)
     print("Test data variables before standardizing:", test_adata_full.var_names)
+    test_var = [v.lower() for v in list(test_adata_full.var_names)]
     # print("Test data variables after standardizing:", test_var)
     # test_adata_full.var = test_var
     # Markers must all match and be in the same order
-    common_vars = [v for v in train_adata_full.var_names if v in test_adata_full.var_names]
+    common_vars = [v for v in train_var if v in test_var]
     print("Common variables (Training Order):", common_vars)
     test_adata = test_adata_full[:, common_vars].copy()
     if train_adata_full.var_names.to_list() != test_adata.var_names.to_list():

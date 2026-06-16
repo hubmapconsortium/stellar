@@ -193,12 +193,14 @@ def main(directory: Path, tissue: str):
     adata = anndata.concat(adatas, index_unique="-")
     # Check if antibody names match
     test_var = standardize_antb_df(adata.var)
+    test_var = [v.lower() for v in test_var.index]
     print("Training data variables:", train_adata.var_names)
+    train_var = [v.lower() for v in list(train_adata.var_names)]
     print("Test data variables before standardizing:", adata.var_names)
     print("Test data variables after standardizing:", test_var)
     adata.var = test_var
     # Markers must all match and be in the same order
-    common_vars = [v for v in train_adata.var_names if v in adata.var_names]
+    common_vars = [v for v in train_var if v in test_var]
     print("Common variables (Training Order):", common_vars)
     test_adata = adata[:, common_vars].copy()
     if train_adata.var_names.to_list() != test_adata.var_names.to_list():
