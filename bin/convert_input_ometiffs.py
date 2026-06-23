@@ -201,4 +201,4 @@ if __name__ == "__main__":
     p.add_argument("provider")
     args = p.parse_args()
 
-    main(args.directory, args.tissue)
+    main(args.directory, args.tissue, args.provider)

@@ -16,6 +16,10 @@ inputs:
     type: string
     inputBinding:
       position: 1
+  provider:
+    type: string
+    inputBinding:
+      position: 2
 
 outputs:
   h5ad_file:
