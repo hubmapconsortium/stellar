@@ -21,12 +21,10 @@ data_dir_possibilities = [
 ]
 
 adata_paths = {
-    "intestine": Path("20260107_newSPRM_64CODEX_SLI_annotated.h5ad"),
-    "skin": Path("20260324_skin_v5_12data_leiden15_noCD3_refine_labeled_with_spatial.h5ad"),
+    "Stanford TMC": {"LI": Path("20260107_newSPRM_64CODEX_SLI_annotated.h5ad")},
+    "General Electric RTI": {"SK": Path("20260324_skin_v5_12data_leiden15_noCD3_refine_labeled_with_spatial.h5ad")},
     # other tissues : other paths,
 }
-
-possible_providers = [] # TODO: put providers here
 
 antibodies_dict = {
     "BCL2": "BCL-2",
@@ -70,9 +68,9 @@ def find_antibody_key(value: str) -> str:
     return value
 
 
-def find_data_file(tissue):
+def find_data_file(tissue, provider):
     for path in data_dir_possibilities:
-        if (f := path / adata_paths[tissue]).is_file():
+        if (f := path / adata_paths[provider][tissue]).is_file():
             print("Found training data file at", f)
             return f
     message_pieces = [f"Couldn't find data directory; tried:"]
@@ -87,20 +85,6 @@ def check_tissue(tissue):
         return True
     else:
         return False
-
-
-def write_pseudo_adata():
-    with open("results.txt", "w") as f:
-        X = np.random.rand(3, 5)
-        obs_df = pd.DataFrame(
-            index=[f"cell_{i}" for i in range(3)],
-            data = {"fake": np.random.randint(0,3, size=3), "stage": "mock"}
-        )
-        var_df = pd.DataFrame(
-            index=[f"gene_{j}" for j in range(5)]
-        )
-        fake_adata = anndata.AnnData(X=X, obs=obs_df, var=var_df)
-        fake_adata.write_h5ad("no_model.h5ad")
 
 
 def find_expr_mask_dir(base_dir: Path) -> tuple[Path, Path]:
@@ -171,16 +155,7 @@ def convert(expr: Path, mask: Path):
     return image_adata
 
 
-def main(directory: Path, tissue: str):
-    # Check if a model is available before opening the image
-    # TODO: check for provider as well when I receive that info
-    adata_path = find_data_file(tissue)
-    if not adata_path:
-        print(f"There is no STELLAR model for {tissue}.")
-        write_pseudo_adata()
-        return
-
-    train_adata = anndata.read_h5ad(adata_path)
+def main(directory: Path, tissue: str, provider: str):
     tracemalloc.start()
     expr_dir, mask_dir = find_expr_mask_dir(directory)
     exprs = sorted(find_ome_tiffs(expr_dir))
@@ -192,13 +167,19 @@ def main(directory: Path, tissue: str):
 
     adata = anndata.concat(adatas, index_unique="-")
     # Check if antibody names match
+    train_adata_path = find_data_file(tissue, provider)
+    if not train_adata_path:
+        print(f"There is no STELLAR model for {tissue}.")
+        adata.write_h5ad("cell_data.h5ad")
+        return
+    train_adata = anndata.read_h5ad(train_adata_path)
     test_var = standardize_antb_df(adata.var)
     test_var = [v.lower() for v in test_var.index]
     print("Training data variables:", train_adata.var_names)
     train_var = [v.lower() for v in list(train_adata.var_names)]
     print("Test data variables before standardizing:", adata.var_names)
     print("Test data variables after standardizing:", test_var)
-    adata.var = test_var
+    adata.var_names = test_var
     # Markers must all match and be in the same order
     common_vars = [v for v in train_var if v in test_var]
     print("Common variables (Training Order):", common_vars)
@@ -206,9 +187,10 @@ def main(directory: Path, tissue: str):
     if train_adata.var_names.to_list() != test_adata.var_names.to_list():
         missing_vars = train_adata.var_names.to_list().difference(test_adata.var_names.to_list())
         print("The following variables are missing from the test data:", missing_vars)
-        write_pseudo_adata()
-        return
+        print("Exiting program, STELLAR will not run.")
 
+    else:
+        print("All required variables are present in the test data. Proceeding to STELLAR.")
     test_adata.write_h5ad("cell_data.h5ad")
 
 
@@ -216,6 +198,7 @@ if __name__ == "__main__":
     p = ArgumentParser()
     p.add_argument("directory", type=Path)
     p.add_argument("tissue", type=str)
+    p.add_argument("provider")
     args = p.parse_args()
 
     main(args.directory, args.tissue)

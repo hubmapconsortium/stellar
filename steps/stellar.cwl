@@ -28,3 +28,15 @@ outputs:
     type: Directory
     outputBinding:
       glob: stellar
+
+  cell_type_manifest:
+    label: cell type counts for UBKG
+    type: File
+    outputBinding:
+      glob: "cell_type_manifest.json"
+
+  ontology_mapping:
+    label: STELLAR label to cell ontology mapping
+    type: File
+    outputBinding:
+      glob: "cl_mapping.json"
