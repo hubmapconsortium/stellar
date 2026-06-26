@@ -121,7 +121,7 @@ def convert(expr: Path, mask: Path):
     }
 
     for table in tables.values():
-        table.obs["cell_id"] = pd.Series([int(i.split('-')[1]) for i in table.obs.index.values], index=table.obs.index)
+        table.obs["cell_id"] = pd.Series([int(i.split('-')[-1]) for i in table.obs.index.values], index=table.obs.index)
         table.obs["region"] = pd.Categorical(["cells"] * len(table))
         table.uns["spatialdata_attrs"] = {
             "region": "cells",
