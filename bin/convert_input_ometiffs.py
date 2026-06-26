@@ -95,20 +95,19 @@ def find_expr_mask_dir(base_dir: Path) -> tuple[Path, Path]:
     raise ValueError("Couldn't find image and mask directories")
 
 
-def align_skin_vars(adata, train_adata):
-    test_var_df = standardize_antb_df(adata.var)
-
-    test_lowercase_map = {v.lower(): v for v in test_var_df.index}
+def align_skin_vars(test_adata, train_adata):
+    # standardization commented out for skin
+    test_lowercase_map = {v.lower(): v for v in test_adata.var_names}
     test_var_lowercase = list(test_lowercase_map.keys())
 
     print("Training data variables:", train_adata.var_names)
     train_var_lowercase = [v.lower() for v in train_adata.var_names]
-    print("Test data variables before standardizing:", adata.var_names)
+    print("Test data variables before standardizing:", test_adata.var_names)
     common_vars_lowercase = [v for v in train_var_lowercase if v in test_var_lowercase]
     common_vars_original = [test_lowercase_map[v] for v in common_vars_lowercase]
-    print("Common variables (Original Casing):", common_vars_original)
-    adata.var_names = list(test_var_df.index)
-    test_adata = adata[:, common_vars_original].copy()
+    print("Common variables:", common_vars_original)
+    # test_adata.var_names = list(test_adata.var_names)
+    test_adata = test_adata[:, common_vars_original].copy()
     train_vars_lower_list = [v.lower() for v in train_adata.var_names]
     test_vars_lower_list = [v.lower() for v in test_adata.var_names]
 
