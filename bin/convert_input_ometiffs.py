@@ -184,6 +184,9 @@ def main(directory: Path, tissue: str, provider: str):
     for expr, mask in zip(exprs, masks):
         adatas.append(convert(expr, mask))
 
+    for adata in adatas:
+        print(adata.var_keys)
+
     adata = anndata.concat(adatas, index_unique="-")
     # Check for model
     train_adata_path = find_data_file(tissue, provider)
