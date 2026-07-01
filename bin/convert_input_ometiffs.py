@@ -185,7 +185,8 @@ def main(directory: Path, tissue: str, provider: str):
         adatas.append(convert(expr, mask))
 
     for adata in adatas:
-        print(adata.var_keys)
+        if "MLANA" in adata.var_names:
+            adata.var = adata.var.rename(index={"MLANA": "MELANA"})
 
     adata = anndata.concat(adatas, index_unique="-")
     # Check for model
