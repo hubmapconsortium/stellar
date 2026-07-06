@@ -84,6 +84,7 @@ def load_hubmap_data(
         train_adata_full.obs['cell_type'] = train_adata_full.obs['cell_type_6']
         del train_adata_full.obs['cell_type_6']
     train_adata_full = train_adata_full[train_adata_full.obs['cell_type'] != 'Noise']
+    print(train_adata_full.obs.columns)
     print("Training data variables:", train_adata_full.var_names)
 
     test_adata_full = anndata.read_h5ad(unlabeled_file)
