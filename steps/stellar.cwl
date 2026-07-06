@@ -21,6 +21,11 @@ inputs:
     type: string
     inputBinding:
       position: 1
+  provider:
+    label: data provider
+    type: string
+    inputBinding:
+      position: 1
 
 outputs:
   stellar_results_for_sprm:
