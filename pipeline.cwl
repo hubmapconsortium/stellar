@@ -10,7 +10,7 @@ inputs:
   tissue:
     type: string
   provider:
-    type: string?
+    type: string
 
 outputs:
   stellar_results_for_sprm:
@@ -25,6 +25,7 @@ steps:
     in:
       directory: data_dir
       tissue: tissue
+      provider: provider
     out:
       - h5ad_file
 
@@ -33,5 +34,6 @@ steps:
     in:
       h5ad_file: pre-convert/h5ad_file
       tissue: tissue
+      provider: provider
     out:
       - stellar_results_for_sprm
