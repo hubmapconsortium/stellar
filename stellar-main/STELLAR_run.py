@@ -177,7 +177,7 @@ def main():
         print(predictions_df)
         annotations_csv = out_dir / f"{args.cell_data_h5ad.stem}.csv"
         predictions_df.to_csv(annotations_csv, index=False)
-        create_cell_type_manifest(predictions_df, out_dir)
+        # create_cell_type_manifest(predictions_df, out_dir)
 
         # Should I include the accuracy evaluation from Yang's notebook?
         print("done")
