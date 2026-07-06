@@ -172,6 +172,7 @@ def main():
 
         out_dir = Path("stellar")
         out_dir.mkdir(exist_ok=True, parents=True)
+        print(results)
         idxs, annotations = zip(unlabeled_cell_indexes, results)
         predictions_df = pd.DataFrame({'ID': idxs,
                                       'STELLAR_CellType': annotations})
