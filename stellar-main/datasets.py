@@ -80,10 +80,9 @@ def load_hubmap_data(
     labeled_file: Path, unlabeled_file: Path, distance_thres, sample_rate
 ):
     train_adata_full = anndata.read_h5ad(labeled_file)
-    if 'cell_type_ki67' in train_adata_full.obs.columns:
-        train_adata_full.obs['cell_type'] = train_adata_full.obs['cell_type_ki67']
-        del train_adata_full.obs['cell_type_ki67']
-    print(train_adata_full.obs['cell_type_6'])
+    if 'cell_type_6' in train_adata_full.obs.columns:
+        train_adata_full.obs['cell_type'] = train_adata_full.obs['cell_type_6']
+        del train_adata_full.obs['cell_type_6']
     train_adata_full = train_adata_full[train_adata_full.obs['cell_type'] != 'Noise']
     print(train_adata_full)
     print(train_adata_full.obs)
