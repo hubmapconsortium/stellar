@@ -121,7 +121,6 @@ def load_hubmap_data(
     unlabeled_edges = get_hubmap_edge_index(
         unlabeled_pos, unlabeled_regions, distance_thres
     )
-    print(train_y)
     return (
         train_adata.X,
         train_y,

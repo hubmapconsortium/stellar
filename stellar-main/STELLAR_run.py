@@ -172,12 +172,11 @@ def main():
 
         out_dir = Path("stellar")
         out_dir.mkdir(exist_ok=True, parents=True)
-        idxs, annotations = zip(unlabeled_cell_indexes, results)
-        predictions_df = pd.DataFrame({'ID': idxs,
-                                      'STELLAR_CellType': annotations})
-        print(predictions_df)
-        annotations_csv = out_dir / f"{args.cell_data_h5ad.stem}.csv"
-        predictions_df.to_csv(annotations_csv, index=False)
+        with open(out_dir / f"{args.cell_data_h5ad.stem}.csv", "w") as f:
+            print("ID,STELLAR_CellType", file=f)
+            for cell_id, cell_type_id in zip(unlabeled_cell_indexes, results):
+                cell_type = inverse_dict[cell_type_id]
+                print(f"{cell_id},{cell_type}", file=f)
         # create_cell_type_manifest(predictions_df, out_dir)
 
         # Should I include the accuracy evaluation from Yang's notebook?
