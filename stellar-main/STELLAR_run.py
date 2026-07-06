@@ -135,6 +135,8 @@ def main():
     # Seed the run and create saving directory
     args.name = "STELLAR"
     args = prepare_save_dir(args, __file__)
+    print(args.tissue)
+    print(args.provider)
 
     (
         labeled_X,
