@@ -107,7 +107,6 @@ def load_hubmap_data(
     train_adata.obsm['X_spatial'] = spatial
     labeled_pos = train_adata.obsm["X_spatial"]
     labeled_regions = train_adata.obs["File_ID"]
-    print(labeled_regions)
 
     train_y = train_adata.obs["cell_type"]
     cell_types = sorted(set(train_y))
@@ -122,6 +121,7 @@ def load_hubmap_data(
     unlabeled_edges = get_hubmap_edge_index(
         unlabeled_pos, unlabeled_regions, distance_thres
     )
+    print(train_y)
     return (
         train_adata.X,
         train_y,
