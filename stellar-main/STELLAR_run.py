@@ -172,8 +172,9 @@ def main():
 
         out_dir = Path("stellar")
         out_dir.mkdir(exist_ok=True, parents=True)
-        predictions_df = pd.DataFrame({'ID': unlabeled_cell_indexes,
-                                      'STELLAR_CellType': results})
+        idxs, annotations = zip(unlabeled_cell_indexes, results)
+        predictions_df = pd.DataFrame({'ID': idxs,
+                                      'STELLAR_CellType': annotations})
         print(predictions_df)
         annotations_csv = out_dir / f"{args.cell_data_h5ad.stem}.csv"
         predictions_df.to_csv(annotations_csv, index=False)

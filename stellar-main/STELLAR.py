@@ -186,6 +186,7 @@ class STELLAR:
             confs = np.append(confs, conf.cpu().numpy())
         preds = preds.astype(int)
         mean_uncert = 1 - np.mean(confs)
+        print(preds)
         return mean_uncert, preds
 
     def train(self):
