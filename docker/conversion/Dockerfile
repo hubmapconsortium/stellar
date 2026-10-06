@@ -5,6 +5,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
  && apt-get -y install \
     git \
+    libgl1 \
+    libglib2.0-0t64 \
  && rm -rf /var/cache/apt/*
 
 WORKDIR /opt
