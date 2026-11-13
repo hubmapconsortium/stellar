@@ -107,7 +107,7 @@ def main():
         inverse_dict,
         unlabeled_cell_indexes,
     ) = load_hubmap_data(
-        find_data_file(),
+        find_data_file(args.model_dir_name),
         args.cell_data_h5ad,
         args.distance_thres,
         args.sample_rate,
