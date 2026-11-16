@@ -16,6 +16,11 @@ inputs:
     type: File
     inputBinding:
       position: 0
+  tissue:
+    label: Tissue directory
+    type: string
+    inputBinding:
+      position: 1
 
 outputs:
   stellar_results_for_sprm:
