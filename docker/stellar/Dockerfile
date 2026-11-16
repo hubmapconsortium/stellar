@@ -31,7 +31,7 @@ RUN pip3 install -r /opt/requirements.txt \
 
 RUN mkdir /data \
  && cd /data \
- && wget -O - https://giygas.compbio.cs.cmu.edu/stellar_training_202609.tar | tar -xf -
+ && wget -O - https://hubmap-pipeline-assets.s3.us-east-1.amazonaws.com/stellar/stellar_training_202609.tar | tar -xf -
 
 COPY stellar-main /stellar-main
 
