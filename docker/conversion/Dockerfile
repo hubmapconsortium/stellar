@@ -9,8 +9,6 @@ RUN apt-get update \
     libglib2.0-0t64 \
  && rm -rf /var/cache/apt/*
 
-RUN conda install lxml
-
 WORKDIR /opt
 COPY docker/conversion/requirements.txt /opt
 RUN python3 -m pip install -r /opt/requirements.txt \
