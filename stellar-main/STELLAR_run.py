@@ -130,7 +130,8 @@ def main():
         print("ID,STELLAR_CellType", file=f)
         for cell_id, cell_type_id in zip(unlabeled_cell_indexes, results):
             cell_type = inverse_dict[cell_type_id]
-            print(f"{cell_id},{cell_type}", file=f)
+            cell_id_adj = cell_id.rsplit("-", 2)[1]
+            print(f"{cell_id_adj},{cell_type}", file=f)
 
     print("done")
 
