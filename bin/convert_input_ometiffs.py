@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
 import importlib.resources
+import tracemalloc
 from argparse import ArgumentParser
-from pathlib import Path
 from math import ceil, log2
+from pathlib import Path
+
 import anndata
 import pandas as pd
 import spatialdata as sd
+from bioio import BioImage
 from ome_utils import find_ome_tiffs
 from sklearn.preprocessing import StandardScaler
+from spatialdata.models import Image2DModel, Labels2DModel, PointsModel, TableModel
 from sprm import modules
 from xarray import DataArray
-from spatialdata.models import Image2DModel, Labels2DModel, PointsModel, TableModel
-import tracemalloc
-from bioio import BioImage
 
-desired_pixel_size_for_pyramid=250
+desired_pixel_size_for_pyramid = 250
+
 
 def find_expr_mask_dir(base_dir: Path) -> tuple[Path, Path]:
     if (d := base_dir / "pipeline_output").is_dir():
@@ -32,7 +34,7 @@ def convert(expr: Path, mask: Path):
     output_dir = output_dir_base / expr.stem
     output_dir.mkdir(exist_ok=True, parents=True)
 
-    csv_base = expr.name.split('.', 1)[0]
+    csv_base = expr.name.split(".", 1)[0]
 
     core = modules.preprocessing.run(
         img_file=expr,
@@ -64,7 +66,12 @@ def convert(expr: Path, mask: Path):
     # in that way.
     image_adata = anndata.AnnData(
         X=scaled_expr_array,
-        obs=pd.DataFrame(index = [f"{csv_base}-"+str(i) for i in mean_expr.coords["cell_index"].to_series().tolist()]),
+        obs=pd.DataFrame(
+            index=[
+                f"{csv_base}-" + str(i)
+                for i in mean_expr.coords["cell_index"].to_series().tolist()
+            ]
+        ),
         var=pd.DataFrame(index=mean_expr.coords["expr_channel"]),
     )
 
@@ -80,9 +87,9 @@ def convert(expr: Path, mask: Path):
     image_adata.obsm["X_spatial"] = cell_centers_df
     image_adata.obs["unique_region"] = expr.stem
 
-    print('SPRM conversion complete')
+    print("SPRM conversion complete")
 
-    print('Starting SpatialData conversion')
+    print("Starting SpatialData conversion")
     print("Loading image data")
     image = BioImage(expr)
     image_data_squeezed = image.data.squeeze()
@@ -100,7 +107,9 @@ def convert(expr: Path, mask: Path):
 
     print("Loading mask data")
     mask = BioImage(mask)
-    mask_data = {ch: mask.data[0, i, 0, :, :] for i, ch in enumerate(mask.channel_names)}
+    mask_data = {
+        ch: mask.data[0, i, 0, :, :] for i, ch in enumerate(mask.channel_names)
+    }
     cell_indexes = sorted(set(mask_data["cells"].flat) - {0})
     print("... done.", len(cell_indexes), "cells")
 
@@ -113,7 +122,7 @@ def convert(expr: Path, mask: Path):
     }
 
     cell_centers_copy = cell_centers_df.copy()
-    cell_centers_copy.columns = ['y', 'x']
+    cell_centers_copy.columns = ["y", "x"]
     shapes_for_sdata = PointsModel.parse(cell_centers_copy)
 
     tables = {
@@ -121,7 +130,10 @@ def convert(expr: Path, mask: Path):
     }
 
     for table in tables.values():
-        table.obs["cell_id"] = pd.Series([int(i.split('-')[-1]) for i in table.obs.index.values], index=table.obs.index)
+        table.obs["cell_id"] = pd.Series(
+            [int(i.split("-")[1]) for i in table.obs.index.values],
+            index=table.obs.index,
+        )
         table.obs["region"] = pd.Categorical(["cells"] * len(table))
         table.uns["spatialdata_attrs"] = {
             "region": "cells",

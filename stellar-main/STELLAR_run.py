@@ -1,10 +1,8 @@
 import argparse
-import os
 from pathlib import Path
 
-import numpy as np
 import torch
-from datasets import GraphDataset, load_hubmap_data, load_tonsilbe_data
+from datasets import GraphDataset, load_hubmap_data
 from STELLAR import STELLAR
 from utils import prepare_save_dir
 
@@ -18,11 +16,13 @@ data_dir_possibilities = [
 ]
 
 
-def find_data_file() -> Path:
+def find_data_file(model_dir_name: str) -> Path:
     for path in data_dir_possibilities:
-        if (f := path / data_filename).is_file():
-            print("Found training data file at", f)
-            return f
+        if (d := path / model_dir_name).is_dir():
+            h5ads = list(d.glob("*.h5ad"))
+            assert (l := len(h5ads)) == 1, f"Need 1 H5AD file in {d}; found {l}"
+            print("Found training data file at", h5ads[0])
+            return h5ads[0]
     message_pieces = [f"Couldn't find data directory; tried:"]
     message_pieces.extend([f"\t{path}" for path in data_dir_possibilities])
     raise FileNotFoundError("\n".join(message_pieces))
@@ -31,6 +31,7 @@ def find_data_file() -> Path:
 def main():
     parser = argparse.ArgumentParser(description="STELLAR")
     parser.add_argument("cell_data_h5ad", type=Path)
+    parser.add_argument("model_dir_name")
 
     parser.add_argument(
         "--seed", type=int, default=1, metavar="S", help="random seed (default: 1),"
@@ -106,7 +107,7 @@ def main():
         inverse_dict,
         unlabeled_cell_indexes,
     ) = load_hubmap_data(
-        find_data_file(),
+        find_data_file(args.model_dir_name),
         args.cell_data_h5ad,
         args.distance_thres,
         args.sample_rate,
@@ -129,7 +130,8 @@ def main():
         print("ID,STELLAR_CellType", file=f)
         for cell_id, cell_type_id in zip(unlabeled_cell_indexes, results):
             cell_type = inverse_dict[cell_type_id]
-            print(f"{cell_id},{cell_type}", file=f)
+            cell_id_adj = cell_id.rsplit("-", 2)[1]
+            print(f"{cell_id_adj},{cell_type}", file=f)
 
     print("done")
 

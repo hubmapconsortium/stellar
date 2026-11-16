@@ -4,7 +4,7 @@ baseCommand: ["python", "/stellar-main/STELLAR_run.py"]
 
 requirements:
   DockerRequirement:
-    dockerPull: hubmap/stellar:0.3.5
+    dockerPull: hubmap/stellar:latest
   DockerGpuRequirement: {}
   EnvVarRequirement:
     envDef:
@@ -16,6 +16,11 @@ inputs:
     type: File
     inputBinding:
       position: 0
+  tissue:
+    label: Tissue directory
+    type: string
+    inputBinding:
+      position: 1
 
 outputs:
   stellar_results_for_sprm:
