@@ -30,7 +30,7 @@ options_file = importlib.resources.files("sprm") / "options.txt"
 output_dir_base = Path("sprm_features_outputs")
 
 
-def convert(expr: Path, mask: Path):
+def convert(expr: Path, mask: Path, write_spatialdata: bool):
     output_dir = output_dir_base / expr.stem
     output_dir.mkdir(exist_ok=True, parents=True)
 
@@ -89,74 +89,75 @@ def convert(expr: Path, mask: Path):
 
     print("SPRM conversion complete")
 
-    print("Starting SpatialData conversion")
-    print("Loading image data")
-    image = BioImage(expr)
-    image_data_squeezed = image.data.squeeze()
-    print("... done. Original shape:", image.data.shape)
+    if write_spatialdata:
+        print("Starting SpatialData conversion")
+        print("Loading image data")
+        image = BioImage(expr)
+        image_data_squeezed = image.data.squeeze()
+        print("... done. Original shape:", image.data.shape)
 
-    image_scale_factors = (2,) * ceil(
-        log2(max(image_data_squeezed.shape[1:]) / desired_pixel_size_for_pyramid)
-    )
+        image_scale_factors = (2,) * ceil(
+            log2(max(image_data_squeezed.shape[1:]) / desired_pixel_size_for_pyramid)
+        )
 
-    img_for_sdata = Image2DModel.parse(
-        data=image_data_squeezed,
-        c_coords=image.channel_names,
-        scale_factors=image_scale_factors,
-    )
-
-    print("Loading mask data")
-    mask = BioImage(mask)
-    mask_data = {
-        ch: mask.data[0, i, 0, :, :] for i, ch in enumerate(mask.channel_names)
-    }
-    cell_indexes = sorted(set(mask_data["cells"].flat) - {0})
-    print("... done.", len(cell_indexes), "cells")
-
-    masks_for_sdata = {
-        ch: Labels2DModel.parse(
-            data=mask_array,
+        img_for_sdata = Image2DModel.parse(
+            data=image_data_squeezed,
+            c_coords=image.channel_names,
             scale_factors=image_scale_factors,
         )
-        for ch, mask_array in mask_data.items()
-    }
 
-    cell_centers_copy = cell_centers_df.copy()
-    cell_centers_copy.columns = ["y", "x"]
-    shapes_for_sdata = PointsModel.parse(cell_centers_copy)
+        print("Loading mask data")
+        mask = BioImage(mask)
+        mask_data = {
+            ch: mask.data[0, i, 0, :, :] for i, ch in enumerate(mask.channel_names)
+        }
+        cell_indexes = sorted(set(mask_data["cells"].flat) - {0})
+        print("... done.", len(cell_indexes), "cells")
 
-    tables = {
-        "mean_expr": TableModel.parse(expr_adata),
-    }
-
-    for table in tables.values():
-        table.obs["cell_id"] = pd.Series(
-            [int(i.split("-")[1]) for i in table.obs.index.values],
-            index=table.obs.index,
-        )
-        table.obs["region"] = pd.Categorical(["cells"] * len(table))
-        table.uns["spatialdata_attrs"] = {
-            "region": "cells",
-            "region_key": "region",
-            "instance_key": "cell_id",
+        masks_for_sdata = {
+            ch: Labels2DModel.parse(
+                data=mask_array,
+                scale_factors=image_scale_factors,
+            )
+            for ch, mask_array in mask_data.items()
         }
 
-    sdata = sd.SpatialData(
-        images={"expression": img_for_sdata},
-        points={"centers": shapes_for_sdata},
-        labels=masks_for_sdata,
-        tables=tables,
-    )
+        cell_centers_copy = cell_centers_df.copy()
+        cell_centers_copy.columns = ["y", "x"]
+        shapes_for_sdata = PointsModel.parse(cell_centers_copy)
 
-    sdata_name = f"{csv_base}_spatialdata.zarr"
-    print("Saving SpatialData object to", sdata_name)
-    print(sdata)
-    sdata.write(sdata_name, overwrite=True)
+        tables = {
+            "mean_expr": TableModel.parse(expr_adata),
+        }
+
+        for table in tables.values():
+            table.obs["cell_id"] = pd.Series(
+                [int(i.split("-")[1]) for i in table.obs.index.values],
+                index=table.obs.index,
+            )
+            table.obs["region"] = pd.Categorical(["cells"] * len(table))
+            table.uns["spatialdata_attrs"] = {
+                "region": "cells",
+                "region_key": "region",
+                "instance_key": "cell_id",
+            }
+
+        sdata = sd.SpatialData(
+            images={"expression": img_for_sdata},
+            points={"centers": shapes_for_sdata},
+            labels=masks_for_sdata,
+            tables=tables,
+        )
+
+        sdata_name = f"{csv_base}_spatialdata.zarr"
+        print("Saving SpatialData object to", sdata_name)
+        print(sdata)
+        sdata.write(sdata_name, overwrite=True)
 
     return image_adata
 
 
-def main(directory: Path):
+def main(directory: Path, write_spatialdata: bool):
     tracemalloc.start()
     expr_dir, mask_dir = find_expr_mask_dir(directory)
     exprs = sorted(find_ome_tiffs(expr_dir))
@@ -164,7 +165,7 @@ def main(directory: Path):
 
     adatas = []
     for expr, mask in zip(exprs, masks):
-        adatas.append(convert(expr, mask))
+        adatas.append(convert(expr, mask, write_spatialdata))
 
     adata = anndata.concat(adatas, index_unique="-")
     adata.write_h5ad("cell_data.h5ad")
@@ -173,6 +174,7 @@ def main(directory: Path):
 if __name__ == "__main__":
     p = ArgumentParser()
     p.add_argument("directory", type=Path)
+    p.add_argument("--write-spatialdata", action="store_true")
     args = p.parse_args()
 
-    main(args.directory)
+    main(args.directory, args.write_spatialdata)

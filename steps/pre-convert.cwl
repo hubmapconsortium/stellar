@@ -12,6 +12,12 @@ inputs:
     type: Directory
     inputBinding:
       position: 0
+  write_spatialdata:
+    type: boolean
+    default: true
+    inputBinding:
+      position: 1
+      prefix: --write-spatialdata
 
 outputs:
   h5ad_file:
@@ -19,6 +25,6 @@ outputs:
     outputBinding:
       glob: cell_data.h5ad
   spatialdata_zarrs:
-    type: Directory[]
+    type: Directory[]?
     outputBinding:
       glob: "*_spatialdata.zarr"
