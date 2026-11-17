@@ -16,8 +16,18 @@ data_dir_possibilities = [
     Path(__file__).parent / "data",
 ]
 
+tissue_mapping = {
+    "LF": "fallopian_tube",
+    "RF": "fallopian_tube",
+    "HT": "heart",
+    "LI": "intestine",
+    "SI": "intestine",
+    "SK": "skin",
+}
+
 
 def find_data_file(tissue: str) -> Optional[Path]:
+    tissue = tissue_mapping.get(tissue, tissue)
     for path in data_dir_possibilities:
         if (d := path / tissue).is_dir():
             h5ads = list(d.glob("*.h5ad"))
