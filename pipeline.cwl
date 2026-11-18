@@ -9,13 +9,16 @@ inputs:
     type: Directory
   tissue:
     type: string
+  write_spatialdata:
+    type: boolean
+    default: false
 
 outputs:
   stellar_results_for_sprm:
     type: Directory
     outputSource: stellar/stellar_results_for_sprm
   spatialdata_zarrs:
-    type: Directory[]
+    type: Directory[]?
     outputSource: pre-convert/spatialdata_zarrs
   h5ad_file:
     type: File
@@ -26,6 +29,7 @@ steps:
     run: steps/pre-convert.cwl
     in:
       directory: data_dir
+      write_spatialdata: write_spatialdata
     out:
       - h5ad_file
       - spatialdata_zarrs

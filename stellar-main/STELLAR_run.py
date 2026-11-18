@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+from typing import Optional
 
 import torch
 from datasets import GraphDataset, load_hubmap_data
@@ -15,17 +16,28 @@ data_dir_possibilities = [
     Path(__file__).parent / "data",
 ]
 
+tissue_mapping = {
+    "LF": "fallopian_tube",
+    "RF": "fallopian_tube",
+    "HT": "heart",
+    "LI": "intestine",
+    "SI": "intestine",
+    "SK": "skin",
+}
 
-def find_data_file(model_dir_name: str) -> Path:
+
+def find_data_file(tissue: str) -> Optional[Path]:
+    tissue = tissue_mapping.get(tissue, tissue)
     for path in data_dir_possibilities:
-        if (d := path / model_dir_name).is_dir():
+        if (d := path / tissue).is_dir():
             h5ads = list(d.glob("*.h5ad"))
             assert (l := len(h5ads)) == 1, f"Need 1 H5AD file in {d}; found {l}"
             print("Found training data file at", h5ads[0])
             return h5ads[0]
     message_pieces = [f"Couldn't find data directory; tried:"]
     message_pieces.extend([f"\t{path}" for path in data_dir_possibilities])
-    raise FileNotFoundError("\n".join(message_pieces))
+    print("\n".join(message_pieces))
+    return None
 
 
 def main():
@@ -91,6 +103,15 @@ def main():
     )
 
     args = parser.parse_args()
+
+    out_dir = Path("stellar")
+    out_dir.mkdir(exist_ok=True, parents=True)
+
+    maybe_training_data_path = find_data_file(args.model_dir_name)
+    if maybe_training_data_path is None:
+        # No training data for this tissue. Nothing to do; leave empty directory.
+        return
+
     args.cuda = torch.cuda.is_available()
     args.device = torch.device("cuda" if args.cuda else "cpu")
 
@@ -107,7 +128,7 @@ def main():
         inverse_dict,
         unlabeled_cell_indexes,
     ) = load_hubmap_data(
-        find_data_file(args.model_dir_name),
+        maybe_training_data_path,
         args.cell_data_h5ad,
         args.distance_thres,
         args.sample_rate,
@@ -124,8 +145,6 @@ def main():
     stellar.train()
     _, results = stellar.pred()
 
-    out_dir = Path("stellar")
-    out_dir.mkdir(exist_ok=True, parents=True)
     with open(out_dir / f"{args.cell_data_h5ad.stem}.csv", "w") as f:
         print("ID,STELLAR_CellType", file=f)
         for cell_id, cell_type_id in zip(unlabeled_cell_indexes, results):
