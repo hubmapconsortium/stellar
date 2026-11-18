@@ -4,7 +4,7 @@ baseCommand: ["python", "/stellar-main/STELLAR_run.py"]
 
 requirements:
   DockerRequirement:
-    dockerPull: hubmap/stellar:latest
+    dockerPull: hubmap/stellar:0.5.1
   DockerGpuRequirement: {}
   EnvVarRequirement:
     envDef:
